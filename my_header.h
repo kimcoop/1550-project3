@@ -22,4 +22,4 @@
 #define EAT_TIME 5 // max time random [1..eat_time] client spends eating food before leaving
 #define MAX_PEOPLE 5 // max people in queue for client to leave shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
-#define SHMID 1 // shared mem seg ID
+#define SHARED_ID 1 // shared mem seg ID
