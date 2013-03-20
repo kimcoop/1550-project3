@@ -1,13 +1,19 @@
+#include <stdio.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
+#define SHM_SIZE 1024
 
  /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
  */
-#define DEBUG 0
+#define DEBUG 1
 
 #define println(...) if ( DEBUG ) { printf("%d:\t", __LINE__); }  printf( __VA_ARGS__ ); printf("\n")
 #define log(...) if ( DEBUG ) { printf("%d:\t", __LINE__); printf( __VA_ARGS__ ); printf("\n"); }

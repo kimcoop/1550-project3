@@ -7,11 +7,40 @@ Due March 28, 2013
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 #include "my_header.h"
 
+void shmemOps() {
+  log("shmemOps");
+  key_t key; // key = ftok("kimcoop", 'R');
+  char *data;
+  int shmid;
+
+  if ( ( shmid = shmget( key, SHM_SIZE, 0644 | IPC_CREAT )) == -1 ) { // connect, maybe create, segment
+    perror("shmget");
+    exit(1);
+  }
+
+  if ( (data = shmat( shmid, ( void* )0, 0 )) == ( char* )(-1) ) { //attach to get ptr
+    exit(1);
+    perror("shmat");
+  }
+
+  log("shared contents: %s\n", data);
+  strncpy( data, "test1", SHM_SIZE );
+  log("shared contents after: %s\n", data);
+
+  if ( shmdt(data) == -1 ) { // detach
+    perror("shmdt");
+    exit(1);
+  }
+
+  println( "shmid: %d ", shmid );
+  if ( shmctl( shmid, IPC_RMID, NULL ) == -1 ) { // delete
+    perror("shmtcl");
+    exit(1);
+  }
+}
 
 int main( int argc, char *argv[] ) {
 
@@ -59,6 +88,8 @@ int main( int argc, char *argv[] ) {
   println( "probably with which client decides to leave: %d", prob );
   println( "shared memory segment ID: %d", shared_id );
   println("");
+
+  shmemOps();
 
   return 0;
  

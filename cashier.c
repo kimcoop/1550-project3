@@ -7,10 +7,7 @@ Due March 28, 2013
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include  <signal.h>
+
 #include  "my_header.h"
 
 
