@@ -3,7 +3,7 @@
 	void printCashierOptions();
 	void printServerOptions();
 */
-	
+
 void printClientOptions() {
 	println("");
 	println("Client Options:");
@@ -27,7 +27,7 @@ void printCashierOptions() {
 void printServerOptions() {
 	println("");
   println("Server Options:");
-  println( " -s <int>\t max time server takes to service client" );
+  println( " -t <int>\t max time server takes to service client" );
   println( " -h <int> \t shared memory segment ID");
   println("");
 }
