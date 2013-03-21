@@ -12,34 +12,41 @@ Due March 28, 2013
 
 void shmemOps() {
   log("shmemOps");
-  key_t key; // key = ftok("kimcoop", 'R');
-  char *data;
-  int shmid;
-
-  if ( ( shmid = shmget( key, SHM_SIZE, 0644 | IPC_CREAT )) == -1 ) { // connect, maybe create, segment
-    perror("shmget");
-    exit(1);
-  }
-
-  if ( (data = shmat( shmid, ( void* )0, 0 )) == ( char* )(-1) ) { //attach to get ptr
-    exit(1);
-    perror("shmat");
-  }
+  key_t key = ftok("kimcoop", 'R'); 
+  int shmid = allocateSharedMem( key );
+  char *data = attachSharedMem( shmid );
 
   log("shared contents: %s\n", data);
-  strncpy( data, "test1", SHM_SIZE );
-  log("shared contents after: %s\n", data);
-
-  if ( shmdt(data) == -1 ) { // detach
-    perror("shmdt");
-    exit(1);
+  
+  pid_t child_pid;
+  int i=0, j=0;
+  if ( (child_pid = fork() ) < 0 ) {
+    perror("fork"); exit(1);
+  } else if ( child_pid == 0 ) {
+    while (1 && i < 4) {
+      // sem_wait( &shared.empty ); // if no empty slots, wait
+      sem_wait( &shared.mutex ); // if another is using buffer, wait
+      println(" child %d acquiring mutex ", getpid() );
+      log(" (child) shared contents: %s\n", data);
+      strncpy( data, "child! ", SHM_SIZE );
+      sem_post( &shared.mutex );
+      // sem_post( &shared.full );
+      i++;
+    }
+  } else { // parent
+    while (1  && j < 4) {
+      sem_wait( &shared.mutex );
+      println(" parent %d acquiring mutex ", getpid() );
+      log(" (parent) shared contents: %s\n", data);
+      strncpy( data, "parent! ", SHM_SIZE );
+      sem_post( &shared.mutex );
+      j++;
+    }
   }
 
   println( "shmid: %d ", shmid );
-  if ( shmctl( shmid, IPC_RMID, NULL ) == -1 ) { // delete
-    perror("shmtcl");
-    exit(1);
-  }
+  detachSharedMem( data );
+  removeSharedMem( shmid );
 }
 
 int main( int argc, char *argv[] ) {
@@ -89,6 +96,8 @@ int main( int argc, char *argv[] ) {
   println( "shared memory segment ID: %d", shared_id );
   println("");
 
+
+  initSems();
   shmemOps();
 
   return 0;

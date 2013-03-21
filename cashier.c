@@ -49,6 +49,12 @@ int main( int argc, char *argv[] ) {
   println( "shared memory segment ID: %i", shared_id );
   println("");
 
+  int value;
+  sem_getvalue( &shared.full, &shared.full );
+  println(" value of shared.full is %d ", value );
+  destroySemaphore();
+
+
   return 0;
  
 }
