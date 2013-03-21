@@ -11,6 +11,8 @@
 #define TRUE 1
 #define FALSE 0
 #define SHM_SIZE 1024
+#define KEY "kimcooperrider"
+#define KEY_MODE 'R'
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -27,9 +29,10 @@
 #define BREAK_TIME 5 // max break time random [1..break_time]
 #define ITEM_ID 1 // menu ID of the meal
 #define EAT_TIME 5 // max time random [1..eat_time] client spends eating food before leaving
-#define MAX_PEOPLE 5 // max people in queue for client to leave shop
+#define MAX_PEOPLE 5 // max people in queue for client to question entering shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
 #define SHARED_ID 1 // shared mem seg ID
+#define NUM_CASHIERS 2
 
 /*
  GLOBALS

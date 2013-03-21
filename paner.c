@@ -6,35 +6,54 @@ Project 3
 Due March 28, 2013
 */
 
+/*
+void spawnClient();
+void spawnCashier();
+void spawnServer();
+void launch()
+*/
 
 #include "my_header.h"
 
 int USE_DEFAULTS = FALSE;
 key_t key;
 int shmid; 
+char shmid_str[ SMALL_BUFFER ];
 char *data;
 
-void sharedMemOps() {
-  log("shmemOps");
+void spawnClient() {
+  if ( execl( "./client",  "client", "-h", shmid_str, (char*)0 ) == -1 ) {
+    perror( "execl" );
+    exit( EXIT_FAILURE );
+  }
+}
 
-  key = ftok("kimcoop", 'R'); 
-  shmid = allocateSharedMem( key );
-  data = attachSharedMem( shmid );
-  
+void spawnCashier() {
+  if ( execl( "./cashier",  "cashier", "-h", shmid_str, (char*)0 ) == -1 ) {
+    perror( "execl" );
+    exit( EXIT_FAILURE );
+  }
+}
+
+void spawnServer() {
+  if ( execl( "./server",  "server", "-h", shmid_str, (char*)0 ) == -1 ) {
+    perror( "execl" );
+    exit( EXIT_FAILURE );
+  }
+}
+
+void launch() {
+
   pid_t child_pid;
   int i=0, j=0;
   if ( (child_pid = fork() ) < 0 ) {
     perror("fork"); 
     exit(1);
   } else if ( child_pid == 0 ) {
-    char arg_shmid[SMALL_BUFFER];
-    sprintf( arg_shmid, "%d", shmid );
 
     while (1 && i < 4) {
       
-      if ( execl( "./client",  "client", "-h", arg_shmid, (char*)0 ) == -1 ) { // spawn clients
-        perror("execl");
-      }
+      spawnClient();
       sem_wait( &shared.empty ); // if no empty slots, wait
       sem_wait( &shared.mutex ); // if another is using buffer, wait
       println(" child %d acquiring mutex ", getpid() );
@@ -61,11 +80,7 @@ void sharedMemOps() {
 
 int main( int argc, char *argv[] ) {
 
-  int item_id = ITEM_ID, 
-      eat_time = EAT_TIME, 
-      max_people = MAX_PEOPLE, 
-      prob = PROBABILITY, 
-      shared_id = SHARED_ID; // TODO - flush out ints
+  int num_cashiers = NUM_CASHIERS; // TODO - ensure we pass other args into exec calls
 
   println( "defaults = %d ", USE_DEFAULTS);
   
@@ -88,27 +103,25 @@ int main( int argc, char *argv[] ) {
 
     for ( i = 1; i < argc; i++ ) {
       strcpy( flag, argv[ i ] );
-      if ( strEqual(flag, "-i") ) 
-        item_id = atoi( argv[++i] );
-      else if ( strEqual(flag, "-e") ) 
-        eat_time = atoi( argv[++i] );
-      else if ( strEqual(flag, "-m") ) 
-        max_people = atoi( argv[++i] );
-      else if ( strEqual(flag, "-p") ) 
-        prob = atoi( argv[++i] );
-      else if ( strEqual(flag, "-h") ) 
-        shared_id = atoi( argv[++i] );
+      if ( strEqual(flag, "-k") )
+        num_cashiers = atoi( argv[ ++i ] );
     }
   }
 
   
-  int parent_id = getpid();
+  int parent_id = getpid(); // gather while we know we are parent (only) process
   initSems();
-  sharedMemOps();
+  key = ftok( KEY, KEY_MODE ); 
+  shmid = allocateSharedMem( key );
+  data = attachSharedMem( shmid );
+  
+  sprintf( shmid_str, "%d", shmid ); // convert to string to pass into other programs
+  launch();
+
   println("waiting");
   wait( NULL ); // wait all child processes
   println("done waiting");
-  if ( getpid() == parent_id ) {
+  if ( getpid() == parent_id ) { // clean up after all child processes have exited
     detachSharedMem( data );
     removeSharedMem( shmid );
   }
