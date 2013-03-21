@@ -15,21 +15,11 @@ int main( int argc, char *argv[] ) {
   int item_id = ITEM_ID, eat_time = EAT_TIME, max_people = MAX_PEOPLE, prob = PROBABILITY, shared_id = SHARED_ID;
   
   if ( argc == 1 ) {
-
-    println("");
-    println("Client Options:");
-    println( " -i <int>\t menu ID of meal");
-    println( " -e <int> \t max time client spends eating her food");
-    println( " -m <int>\t max people in queue");
-    println( " -p <int>\t probably with which client decides to leave");
-    println( " -h <int> \t shared memory segment ID");
-    println("");
+    printClientOptions();
     return 0;
-
   } else if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
-
   } else { // overwrite defaults
     
     int i;

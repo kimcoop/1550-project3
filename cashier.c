@@ -16,19 +16,11 @@ int main( int argc, char *argv[] ) {
   int service_time = SERVICE_TIME, break_time = BREAK_TIME, shared_id = SHARED_ID;
   
   if ( argc == 1 ) { 
-
-    println("");
-    println("Cashier Options:");
-    println( " -s <int>\t max time cashier takes to service client" );
-    println( " -b <int> \t max time cashier spends in break" );
-    println( " -h <int> \t shared memory segment ID");
-    println("");
+    printCashierOptions();
     return 0;
-
   } else if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
-
   } else { // overwrite defaults
     
     int i;

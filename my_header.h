@@ -16,7 +16,6 @@
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
 */
 #define DEBUG 1
-
 #define println(...) if ( DEBUG ) { printf("%d:\t", __LINE__); }  printf( __VA_ARGS__ ); printf("\n")
 #define log(...) if ( DEBUG ) { printf("%d:\t", __LINE__); printf( __VA_ARGS__ ); printf("\n"); }
 #define strEqual(a, b) !strcmp(a, b)
@@ -35,7 +34,6 @@
 /*
  GLOBALS
 */
-
 typedef struct { 
  	int buf[ SMALL_BUFFER ];
  	int i;
@@ -46,13 +44,28 @@ typedef struct {
 
  Semabuf shared;
 
- /* SEMS.C */
- 	int allocateSharedMem( key_t );
-	char* attachSharedMem( int );
-	void detachSharedMem( char* );
-	void removeSharedMem( int );
+/* 
+ SEMS.C 
+*/
+	int 		allocateSharedMem( key_t );
+	char*	  attachSharedMem( int );
+	void 		detachSharedMem( char* );
+	void 		removeSharedMem( int );
+	void 		initSems();
+	void 		destroySemaphore();
 
-	void initSems();
-	void destroySemaphore();
+/* 
+ OUTPUT_HELP.C 
+*/
+	void	 printClientOptions();
+	void	 printCashierOptions();
+	void	 printServerOptions();
 
+/*
+ HELPERS
+*/
 #include "sems.c"
+#include "output_help.c"
+
+
+
