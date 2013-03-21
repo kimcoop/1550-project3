@@ -36,6 +36,8 @@ char* attachSharedMem( int shmid ) {
 
 void detachSharedMem( char* data ) {
 
+	println("detachSharedMem with data %s", data);
+
   if ( shmdt(data) == -1 ) {
     perror("shmdt");
     exit(1);
