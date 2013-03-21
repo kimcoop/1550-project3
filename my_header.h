@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <semaphore.h>
+#include <unistd.h>
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12

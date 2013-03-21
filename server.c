@@ -13,23 +13,29 @@ key_t key;
 int shmid; 
 char *data;
 
-void shmemOps() {
+void sharedMemOps() {
   log("shmemOps");
+
   key = ftok("kimcoop", 'R'); 
   shmid = allocateSharedMem( key );
   data = attachSharedMem( shmid );
-
-  log("shared contents: %s\n", data);
   
   pid_t child_pid;
   int i=0, j=0;
   if ( (child_pid = fork() ) < 0 ) {
-    perror("fork"); exit(1);
+    perror("fork"); 
+    exit(1);
   } else if ( child_pid == 0 ) {
+    char arg_shmid[SMALL_BUFFER];
+    sprintf( arg_shmid, "%d", shmid );
+    println( "%d", execl( "./client",  "client", "-h", arg_shmid, (char*)0 ) ); // spawn clients
+    perror("execl");
+    println(" child!!!!!");
     while (1 && i < 4) {
+      
       // sem_wait( &shared.empty ); // if no empty slots, wait
       sem_wait( &shared.mutex ); // if another is using buffer, wait
-      println(" child %d acquiring mutex ", getpid() );
+      // println(" child %d acquiring mutex ", getpid() );
       log(" (child) shared contents: %s\n", data);
       strncpy( data, "child! ", SHM_SIZE );
       sem_post( &shared.mutex );
@@ -39,14 +45,14 @@ void shmemOps() {
   } else { // parent
     while (1  && j < 4) {
       sem_wait( &shared.mutex );
-      println(" parent %d acquiring mutex ", getpid() );
-      log(" (parent) shared contents: %s\n", data);
+      // println(" parent %d acquiring mutex ", getpid() );
+      // log(" (parent) shared contents: %s\n", data);
       strncpy( data, "parent! ", SHM_SIZE );
       sem_post( &shared.mutex );
       j++;
     }
   }
-
+  
   println( "shmid: %d ", shmid );
 
 }
@@ -54,7 +60,7 @@ void shmemOps() {
 int main( int argc, char *argv[] ) {
 
   int service_time = SERVICE_TIME, shared_id = SHARED_ID;
-  
+  println("%s", argv[0]);
   if ( argc == 1 ) { 
 
     println("");
@@ -87,7 +93,7 @@ int main( int argc, char *argv[] ) {
 
   int parent_id = getpid();
   initSems();
-  shmemOps();
+  sharedMemOps();
   println("waiting");
   wait( NULL ); // wait all child processes
   println("done waiting");
@@ -95,7 +101,6 @@ int main( int argc, char *argv[] ) {
     detachSharedMem( data );
     removeSharedMem( shmid );
   }
-
   return 0;
  
 }
