@@ -10,6 +10,17 @@ Due March 28, 2013
 
 #include "my_header.h"
 
+void stuff() {
+  println(" CHILD PROCESS- CLIENT ");
+  sem_wait( &shared.empty ); // if no empty slots, wait
+  sem_wait( &shared.mutex ); // if another is using buffer, wait
+  println(" CLIENT- child %d acquiring mutex ", getpid() );
+  log(" (child) shared contents: %s\n", data);
+  strncpy( data, "child! ", SHM_SIZE );
+  sem_post( &shared.mutex );
+  sem_post( &shared.full );
+}
+
 int main( int argc, char *argv[] ) {
 
   int item_id = ITEM_ID, eat_time = EAT_TIME, max_people = MAX_PEOPLE, prob = PROBABILITY, shared_id = SHARED_ID;
@@ -46,6 +57,7 @@ int main( int argc, char *argv[] ) {
   println( "probably with which client decides to leave: %d", prob );
   println( "shared memory segment ID: %d", shared_id );
   println("");
+  stuff();
 
   return 0;
  

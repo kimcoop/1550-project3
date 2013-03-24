@@ -43,9 +43,16 @@ typedef struct {
  	sem_t full;
  	sem_t empty;
  	sem_t mutex; // enforce mutual exclusion to shared data
- } Semabuf;
+ } Sembuf;
 
- Semabuf shared;
+Sembuf shared;
+int USE_DEFAULTS = FALSE;
+key_t key;
+int shmid; 
+char shmid_str[ SMALL_BUFFER ];
+char *data;
+
+
 
 /* 
  SEMS.C 
