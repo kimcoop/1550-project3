@@ -24,8 +24,8 @@ void stuff( int shmid ) {
 
 
   char str[ SMALL_BUFFER ] = "Child ID is ";
-  strncat( str, "test", strlen(str)-1 );
-  strncpy( shared->data, str, strlen(shared->data)-1 );
+  strncat( str, "test", SMALL_BUFFER );
+  strncpy( shared->data, "test", SMALL_BUFFER );
   println( "shared->data = %s", shared->data);
 
   writeToFile( OUTPUTFILE, str );
@@ -61,12 +61,13 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  println("-------");
   println( "menu ID of meal: %d", item_id );
   println( "max time client spends eating her food: %d", eat_time );
   println( "max people in queue: %d", max_people );
   println( "probably with which client decides to leave: %d", prob );
   println( "shared memory segment ID: %d", shared_id );
-  println("");
+  println("-------");
   stuff( shared_id );
 
   detachSharedMem( shared );

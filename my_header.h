@@ -58,6 +58,13 @@ SharedData* shared;
 
 
 
+
+
+/* 
+ UTILS.C 
+*/
+	char* toString( char*, int );
+
 /* 
  SEMS.C 
 */
@@ -87,6 +94,7 @@ SharedData* shared;
 /*
  HELPERS
 */
+#include "utils.c"
 #include "sems.c"
 #include "menu.c"
 #include "output_help.c"

@@ -45,7 +45,7 @@ void server( char* shmid_str) {
 void launch() {
   
   char shmid_str[ SMALL_BUFFER ];
-  sprintf( shmid_str, "%d", shmid ); // convert to string to pass into other programs
+  toString( shmid_str, shmid );
 
   pid_t child_pid;
   int i=0, j=0;
@@ -63,7 +63,7 @@ void launch() {
     while ( 1  && j < 4 ) {
       sem_wait( &shared->mutex );
       log("PARENT-  shared contents: %s", shared->data);
-      strncpy( shared->data, "parent! ", SHM_SIZE );
+      strncpy( shared->data, "parent! ", SMALL_BUFFER );
       sem_post( &shared->mutex );
       j++;
     }
@@ -133,6 +133,7 @@ int main( int argc, char *argv[] ) {
 
     detachSharedMem( shared );
     removeSharedMem( shmid );
+    
   }
 
   return 0;
