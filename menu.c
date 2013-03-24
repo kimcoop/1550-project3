@@ -4,6 +4,7 @@
  float getPrice( int );
  int getMinTime( int );
  int getMaxTime( int );
+ int isValidMenuOption( int );
 
 */
 
@@ -15,24 +16,48 @@ int MAX_TIMES[] = { 180, 120, 100, 220, 130, 150, 210, 135, 150, 180, 230, 120, 
 
 
 char* getDescription( int item_id ) {
-  char* description = DESCRIPTIONS[ item_id-1 ];
-  println("description is %s ", description);
+  if ( isValidMenuOption( item_id ) ) {
+    char* description = DESCRIPTIONS[ item_id-1 ];
+    println("description is %s ", description);
+  } else {
+    println( "%d is not a valid menu item. ", item_id );
+    return NULL;
+  }
 }
 
 
 float getPrice( int item_id ) {
-  float price = PRICES[ item_id-1 ];
-  println("price is %f ", price);
+  if ( isValidMenuOption( item_id ) ) {
+    float price = PRICES[ item_id-1 ];
+    println("price is %.2f ", price);
+  } else {
+    println( "%d is not a valid menu item. ", item_id );
+    return -1;
+  }
 }
 
 
 int getMinTime( int item_id ) {
-  int minTime = MIN_TIMES[ item_id-1 ];
-  println("minTime is %d ", minTime);
+  if ( isValidMenuOption( item_id ) ) {
+    int minTime = MIN_TIMES[ item_id-1 ];
+    println("minTime is %d ", minTime);
+  } else {
+    println( "%d is not a valid menu item. ", item_id );
+    return -1;
+  }
 }
 
 
 int getMaxTime( int item_id ) {
-  int maxTime = MAX_TIMES[ item_id-1 ];
-  println("maxTime is %d ", maxTime);
+  if ( isValidMenuOption( item_id ) ) {
+    int maxTime = MAX_TIMES[ item_id-1 ];
+    println("maxTime is %d ", maxTime);
+  } else {
+    println( "%d is not a valid menu item. ", item_id );
+    return -1;
+  }
+}
+
+int isValidMenuOption( int item_id ) {
+  return item_id > 0 && item_id <= 20;
 }

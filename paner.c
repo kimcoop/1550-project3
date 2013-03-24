@@ -89,10 +89,9 @@ int main( int argc, char *argv[] ) {
     printServerOptions();
     printCashierOptions();
     return 0;
-  } else if ( argc == 2 ) { // --defaults, --d, etc
+  } else if ( argc == 2 ) { // --defaults, -d, etc
     println("Using defaults.");
     USE_DEFAULTS = TRUE;
-    println( "defaults = %d ", USE_DEFAULTS);
   } else if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
@@ -108,7 +107,10 @@ int main( int argc, char *argv[] ) {
     }
   }
 
-  
+  getPrice( 1 );
+  getDescription( 1 );
+  getMinTime( 1 );
+  getMaxTime( 1 );
   int parent_id = getpid(); // gather while we know we are parent (only) process
   initSems();
   key = ftok( KEY, KEY_MODE ); 

@@ -65,6 +65,15 @@ typedef struct {
 	void	 printServerOptions();
 
 /*
+ MENU.C
+*/
+	char* 	getDescription( int );
+	float 	getPrice( int );
+	int 		getMinTime( int );
+	int 		getMaxTime( int );
+	int 		isValidMenuOption( int );
+
+/*
  HELPERS
 */
 #include "sems.c"
