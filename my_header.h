@@ -68,6 +68,7 @@ typedef struct {
  HELPERS
 */
 #include "sems.c"
+#include "menu.c"
 #include "output_help.c"
 
 

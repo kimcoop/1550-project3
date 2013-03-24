@@ -7,10 +7,10 @@ Due March 28, 2013
 */
 
 /*
-void spawnClient();
-void spawnCashier();
-void spawnServer();
-void launch()
+void client();
+void cashier();
+void server();
+void launch();
 */
 
 #include "my_header.h"
@@ -21,21 +21,21 @@ int shmid;
 char shmid_str[ SMALL_BUFFER ];
 char *data;
 
-void spawnClient() {
+void client() {
   if ( execl( "./client",  "client", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
 }
 
-void spawnCashier() {
+void cashier() {
   if ( execl( "./cashier",  "cashier", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
 }
 
-void spawnServer() {
+void server() {
   if ( execl( "./server",  "server", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
@@ -53,7 +53,7 @@ void launch() {
 
     while (1 && i < 4) {
       
-      spawnClient();
+      client();
       sem_wait( &shared.empty ); // if no empty slots, wait
       sem_wait( &shared.mutex ); // if another is using buffer, wait
       println(" child %d acquiring mutex ", getpid() );
