@@ -7,29 +7,30 @@ Due March 28, 2013
 */
 
 /*
-void client();
-void cashier();
-void server();
+void client( char* );
+void cashier( char* );
+void server( char* );
 void launch();
 */
 
 #include "my_header.h"
 
-void client() {
+void client( char* shmid_str ) {
+  println(" shmid_str is %s ", shmid_str );
   if ( execl( "./client",  "client", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
 }
 
-void cashier() {
+void cashier( char* shmid_str ) {
   if ( execl( "./cashier",  "cashier", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
 }
 
-void server() {
+void server( char* shmid_str) {
   if ( execl( "./server",  "server", "-h", shmid_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
@@ -37,6 +38,9 @@ void server() {
 }
 
 void launch() {
+  
+  char shmid_str[ SMALL_BUFFER ];
+  sprintf( shmid_str, "%d", shmid ); // convert to string to pass into other programs
 
   pid_t child_pid;
   int i=0, j=0;
@@ -46,15 +50,14 @@ void launch() {
   } else if ( child_pid == 0 ) {
     while ( 1 && i < 4 ) {
       
-      client();
+      client( shmid_str );
       i++;
 
     }
   } else { // parent
     while ( 1  && j < 4 ) {
       sem_wait( &shared.mutex );
-      println(" parent %d acquiring mutex ", getpid() );
-      log(" (parent) shared contents: %s\n", data);
+      log("PARENT-  shared contents: %s", data);
       strncpy( data, "parent! ", SHM_SIZE );
       sem_post( &shared.mutex );
       j++;
@@ -94,6 +97,7 @@ int main( int argc, char *argv[] ) {
 
   int parent_id = getpid(); // gather while we know we are parent (only) process
   initSems();
+  setbuf(stdout, NULL); // stdout is unbuffered
   key = ftok( KEY, KEY_MODE ); 
   shmid = allocateSharedMem( key );
   data = attachSharedMem( shmid );

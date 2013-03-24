@@ -38,18 +38,18 @@
  GLOBALS
 */
 typedef struct { 
- 	int buf[ SMALL_BUFFER ];
- 	int i;
+ 	// int buf[ SMALL_BUFFER ];
+ 	// int i;
+ 	char data[ SMALL_BUFFER ];
  	sem_t full;
  	sem_t empty;
  	sem_t mutex; // enforce mutual exclusion to shared data
- } Sembuf;
+ } SharedData;
 
-Sembuf shared;
+SharedData shared;
 int USE_DEFAULTS = FALSE;
 key_t key;
 int shmid; 
-char shmid_str[ SMALL_BUFFER ];
 char *data;
 
 

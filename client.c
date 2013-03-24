@@ -10,8 +10,8 @@ Due March 28, 2013
 
 #include "my_header.h"
 
-void stuff() {
-  println(" CHILD PROCESS- CLIENT ");
+void stuff( int shmid ) {
+  data = attachSharedMem( shmid );
   sem_wait( &shared.empty ); // if no empty slots, wait
   sem_wait( &shared.mutex ); // if another is using buffer, wait
   println(" CLIENT- child %d acquiring mutex ", getpid() );
@@ -57,7 +57,7 @@ int main( int argc, char *argv[] ) {
   println( "probably with which client decides to leave: %d", prob );
   println( "shared memory segment ID: %d", shared_id );
   println("");
-  stuff();
+  stuff( shared_id );
 
   return 0;
  
