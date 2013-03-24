@@ -1,8 +1,8 @@
 /*
 
 	int allocateSharedMem( key_t );
-	char* attachSharedMem( int );
-	void detachSharedMem( char* );
+	SharedData* attachSharedMem( int );
+	void detachSharedMem( SharedData* );
 	void removeSharedMem( int );
 
 	void initSems();
@@ -13,7 +13,7 @@
 int allocateSharedMem( key_t key ) {
 	// connect, maybe create, segment
 	int shmid;
-  if ( ( shmid = shmget( key, SHM_SIZE, 0644 | IPC_CREAT )) == -1 ) { 
+  if ( ( shmid = shmget( key, sizeof( SharedData ), 0644 | IPC_CREAT )) == -1 ) { 
     perror("shmget");
     exit(1);
   } else {
@@ -22,10 +22,10 @@ int allocateSharedMem( key_t key ) {
 
 }
 
-char* attachSharedMem( int shmid ) {
+SharedData* attachSharedMem( int shmid ) {
 
-	char* data;
-  if ( (data = shmat( shmid, ( void* )0, 0 )) == ( char* )(-1) ) { //attach to get ptr
+	SharedData* data;
+  if ( (data = shmat( shmid, ( void* )0, 0 )) == ( SharedData* )(-1) ) { //attach to get ptr
     exit(1);
     perror("shmat");
   } else {
@@ -34,9 +34,9 @@ char* attachSharedMem( int shmid ) {
 
 }
 
-void detachSharedMem( char* data ) {
+void detachSharedMem( SharedData* data ) {
 
-	println("detachSharedMem with data %s", data);
+	println("detachSharedMem");
 
   if ( shmdt(data) == -1 ) {
     perror("shmdt");
@@ -58,15 +58,15 @@ void removeSharedMem( int shmid ) {
 
 void initSems() {
   
-  sem_init( &shared.full, 0, 0 );
-  sem_init( &shared.empty, 0, 0 );
-  sem_init( &shared.mutex, 0, 1 );
+  sem_init( &shared->full, 0, 0 );
+  sem_init( &shared->empty, 0, 0 );
+  sem_init( &shared->mutex, 0, 1 );
 
 }
 
 void destroySemaphore() {
 	println("destroySemaphore");
-	sem_destroy( &shared.full );
-  sem_destroy( &shared.empty );
-  sem_destroy( &shared.mutex );
+	sem_destroy( &shared->full );
+  sem_destroy( &shared->empty );
+  sem_destroy( &shared->mutex );
 }

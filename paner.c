@@ -11,9 +11,14 @@ void client( char* );
 void cashier( char* );
 void server( char* );
 void launch();
+void initSharedData();
+void initSharedMem();
 */
 
 #include "my_header.h"
+
+key_t key;
+int shmid;
 
 void client( char* shmid_str ) {
   println(" shmid_str is %s ", shmid_str );
@@ -56,16 +61,29 @@ void launch() {
     }
   } else { // parent
     while ( 1  && j < 4 ) {
-      sem_wait( &shared.mutex );
-      log("PARENT-  shared contents: %s", data);
-      strncpy( data, "parent! ", SHM_SIZE );
-      sem_post( &shared.mutex );
+      sem_wait( &shared->mutex );
+      log("PARENT-  shared contents: %s", shared->data);
+      strncpy( shared->data, "parent! ", SHM_SIZE );
+      sem_post( &shared->mutex );
       j++;
     }
   }
   
   println( "shmid: %d ", shmid );
 
+}
+
+void initSharedData() {
+  shared->total_clients = 0;
+  shared->total_revenue = 0.0;
+  shared->total_wait_time = 0;
+  println(" initSharedData ");
+}
+
+void initSharedMem() {
+  key = ftok( KEY, KEY_MODE ); 
+  shmid = allocateSharedMem( key );
+  shared = attachSharedMem( shmid );
 }
 
 int main( int argc, char *argv[] ) {
@@ -96,19 +114,24 @@ int main( int argc, char *argv[] ) {
   }
 
   int parent_id = getpid(); // gather while we know we are parent (only) process
+  setbuf( stdout, NULL ); // stdout is unbuffered
+
   initSems();
-  setbuf(stdout, NULL); // stdout is unbuffered
-  key = ftok( KEY, KEY_MODE ); 
-  shmid = allocateSharedMem( key );
-  data = attachSharedMem( shmid );
-  
+  initSharedMem();
+  initSharedData();
   launch();
 
   println("waiting");
   wait( NULL ); // wait all child processes
   println("done waiting");
+
+  println( "shared->total_clients = %d", shared->total_clients);
+  println( "shared->data = %s", shared->data);
+
+  
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
-    detachSharedMem( data );
+
+    detachSharedMem( shared );
     removeSharedMem( shmid );
   }
 

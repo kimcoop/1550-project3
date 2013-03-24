@@ -11,14 +11,24 @@ Due March 28, 2013
 #include "my_header.h"
 
 void stuff( int shmid ) {
-  data = attachSharedMem( shmid );
-  sem_wait( &shared.empty ); // if no empty slots, wait
-  sem_wait( &shared.mutex ); // if another is using buffer, wait
+  shared = attachSharedMem( shmid );
+
+  sem_wait( &shared->empty ); // if no empty slots, wait
+  sem_wait( &shared->mutex ); // if another is using buffer, wait
   println(" CLIENT- child %d acquiring mutex ", getpid() );
-  log(" (child) shared contents: %s\n", data);
-  strncpy( data, "child! ", SHM_SIZE );
-  sem_post( &shared.mutex );
-  sem_post( &shared.full );
+  
+  sem_post( &shared->mutex );
+  sem_post( &shared->full );
+  shared->total_clients = 1;
+  println( "shared->total_clients = %d", shared->total_clients);
+
+
+  char str[ SMALL_BUFFER ] = "Child ID is ";
+  strncat( str, "test", strlen(str)-1 );
+  strncpy( shared->data, str, strlen(shared->data)-1 );
+  println( "shared->data = %s", shared->data);
+
+  writeToFile( OUTPUTFILE, str );
 }
 
 int main( int argc, char *argv[] ) {
@@ -59,6 +69,7 @@ int main( int argc, char *argv[] ) {
   println("");
   stuff( shared_id );
 
+  detachSharedMem( shared );
   return 0;
  
 }

@@ -13,6 +13,7 @@
 #define SHM_SIZE 1024
 #define KEY "kimcooperrider"
 #define KEY_MODE 'R'
+#define OUTPUTFILE "output.txt"
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -37,20 +38,23 @@
 /*
  GLOBALS
 */
+int USE_DEFAULTS = FALSE;
+
 typedef struct { 
- 	// int buf[ SMALL_BUFFER ];
- 	// int i;
+ 	
+ 	int total_clients;
+ 	float total_revenue;
+ 	int total_wait_time; // avg wait time (enter store -> leave)
+ 	//TODO: top 5 most popular menu items & how much each has generated
+
  	char data[ SMALL_BUFFER ];
  	sem_t full;
  	sem_t empty;
  	sem_t mutex; // enforce mutual exclusion to shared data
  } SharedData;
 
-SharedData shared;
-int USE_DEFAULTS = FALSE;
-key_t key;
-int shmid; 
-char *data;
+SharedData* shared;
+
 
 
 
@@ -58,8 +62,8 @@ char *data;
  SEMS.C 
 */
 	int 		allocateSharedMem( key_t );
-	char*	  attachSharedMem( int );
-	void 		detachSharedMem( char* );
+	SharedData*	  attachSharedMem( int );
+	void 		detachSharedMem( SharedData* );
 	void 		removeSharedMem( int );
 	void 		initSems();
 	void 		destroySemaphore();
@@ -89,3 +93,10 @@ char *data;
 
 
 
+void writeToFile( char* filename, char* str ) {
+  FILE *file = fopen( filename, "ab+" ); // append file (add text to a file or create a file if it does not exist)
+  println(" writeToFile: %s", str );
+  fprintf( file, "%s", str ); // write
+  if ( DEBUG ) fprintf( file, "\n" );
+  fclose( file );
+}
