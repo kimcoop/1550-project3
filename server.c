@@ -6,10 +6,42 @@ Project 3
 Due March 28, 2013
 */
 
+/*
+  void printValues();
+  void prepareFood();
+  void serveFood();
+*/
+
 #include  "my_header.h"
 
 int service_time = SERVICE_TIME,
     shared_id = SHARED_ID;
+
+
+void printValues() {
+
+  println( "-------");
+  println( "max time server takes to service client: %i", service_time );
+  println( "shared memory segment ID: %i", shared_id );
+  println( "-------");
+
+}
+
+void prepareFood() {
+  println("[SERVER] prepareFood() ");
+
+  sem_wait( &shared->order_queue_ready );
+  int client_id = dequeue( &shared->order_queue );
+  println("[SERVER] servicing order for client_id %d", client_id );
+  sem_post( &shared->order_queue_ready );
+
+}
+
+void serveFood() {
+  println("[SERVER] serveFood() ");
+
+}
+
 
 int main( int argc, char *argv[] ) {
 
@@ -33,9 +65,12 @@ int main( int argc, char *argv[] ) {
     }
   }
 
-  println( "max time server takes to service client: %i", service_time );
-  println( "shared memory segment ID: %i", shared_id );
-  println("");
+  // printValues();
+  shared = attachSharedMem( shared_id );
+  
+  prepareFood();
+  // serveFood();
+  
   return 0;
  
 }

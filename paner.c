@@ -21,8 +21,6 @@ void initSharedMem();
 key_t key;
 int shmid;
 
-
-
 void cleanup( char* shmid_str ) {
   println(" shmid_str is %s ", shmid_str );
   if ( execl( "./cleanup",  "cleanup", shmid_str, (char*)0 ) == -1 ) {
@@ -58,29 +56,38 @@ void openDoors() {
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
 
-  pid_t child_pid;
-  int i=0, j=0;
-  if ( (child_pid = fork() ) < 0 ) {
-    perror("fork"); 
-    exit( EXIT_FAILURE );
-  } else if ( child_pid == 0 ) {
-    while ( i < 4 ) {
-      
-      client( shmid_str );
-      i++;
+  
 
-    }
-  } else { // parent
-    while ( j < 4 ) {
+  pid_t child_pid;
+  int i = 0;
+
+  while ( i < 5 ) {
+
+    if ( (child_pid = fork() ) < 0 ) {
+      perror("fork"); 
+      exit( EXIT_FAILURE );
+    } else if ( child_pid == 0 ) {
+        
+      if ( i == 0 ) {
+        server( shmid_str ); // spawn exactly one server
+      } else {
+
+        client( shmid_str );
+        
+      }
+
+      
+    } else { // parent
+      
       sem_wait( &shared->mutex );
-      log("[PARENT] shared->data: %s", shared->data);
       strncpy( shared->data, "parent! ", SMALL_BUFFER );
       sem_post( &shared->mutex );
-      j++;
+      
     }
+
+    i++;
+
   }
-  
-  println( "shmid: %d ", shmid );
 
 }
 
@@ -90,6 +97,7 @@ void initSharedData() {
   shared->total_revenue = 0.0;
   shared->total_wait_time = 0;
   init_queue( &shared->waiting_queue );
+  init_queue( &shared->order_queue );
 }
 
 void initSharedMem() {
@@ -133,7 +141,6 @@ int main( int argc, char *argv[] ) {
   initSharedData();
   openDoors();
 
-  println("waiting");
   wait( NULL ); // wait all child processes
   println("done waiting");
 

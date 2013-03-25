@@ -59,7 +59,8 @@ void removeSharedMem( int shmid ) {
 
 void initSems() {
   
-  sem_init( &shared->waiting_queue_ready, 0, 0 );
+  sem_init( &shared->waiting_queue_ready, 0, 1 );
+  sem_init( &shared->order_queue_ready, 0, 1 );
   sem_init( &shared->mutex, 0, 1 );
 
 }
@@ -68,6 +69,7 @@ void destroySems() {
 
 	println("destroySems");
   sem_destroy( &shared->waiting_queue_ready );
+  sem_destroy( &shared->order_queue_ready );
 	sem_destroy( &shared->mutex );
 
 }

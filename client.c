@@ -50,7 +50,6 @@ void arrive() {
 
     sem_wait( &shared->waiting_queue_ready );
     enqueue( &shared->waiting_queue, client_id );
-    println("[CLIENT] shared->num_queued = %d", shared->num_queued);
     shared->num_queued++;
 
     println("[CLIENT] shared->num_queued = %d", shared->num_queued);
@@ -66,6 +65,15 @@ void order() {
   // consists of a single item.
   // client proceeds to waiting queue.
   println("[CLIENT] menu item is %d ", item_id );
+  sem_wait( &shared->order_queue_ready );
+  sem_wait( &shared->waiting_queue_ready );
+
+  dequeue( &shared->waiting_queue ); // returns client_id
+  enqueue( &shared->order_queue, client_id );
+
+  sem_post( &shared->waiting_queue_ready );
+  sem_post( &shared->order_queue_ready );
+
 }
 
 void pay() {
@@ -146,7 +154,7 @@ int main( int argc, char *argv[] ) {
 
   arrive();
   order();
-  // stuff();
+
 
   detachSharedMem( shared );
 

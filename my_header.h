@@ -57,10 +57,14 @@ typedef struct {
  	int num_queued;
  	float total_revenue;
  	int total_wait_time; // avg wait time (enter store -> leave)
- 	Queue waiting_queue;
+ 	Queue waiting_queue; // clients first arrive here
+ 	Queue order_queue; // clients move here after placing order
+
  	char data[ SMALL_BUFFER ];
  	sem_t waiting_queue_ready;
+ 	sem_t order_queue_ready;
  	sem_t mutex; // enforce mutual exclusion to shared data
+ 	
  } SharedData;
 
 SharedData* shared;
