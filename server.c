@@ -8,9 +8,11 @@ Due March 28, 2013
 
 #include  "my_header.h"
 
+int service_time = SERVICE_TIME,
+    shared_id = SHARED_ID;
+
 int main( int argc, char *argv[] ) {
 
-  int service_time = SERVICE_TIME, shared_id = SHARED_ID;
   
   if ( argc == 1 ) { 
     printServerOptions();

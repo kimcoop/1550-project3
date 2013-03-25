@@ -7,21 +7,62 @@ Due March 28, 2013
 
 */
 
+/*
+
+
+void doubleQueueSize();
+void stuff();
+void arrive( int );
+void order( int );
+
+*/
 
 #include "my_header.h"
 
-void stuff( int shmid ) {
-  shared = attachSharedMem( shmid );
+int item_id = ITEM_ID, 
+    eat_time = EAT_TIME, 
+    max_people = MAX_PEOPLE, 
+    prob = PROBABILITY, 
+    shared_id = SHARED_ID;
 
-  sem_wait( &shared->empty ); // if no empty slots, wait
-  sem_wait( &shared->mutex ); // if another is using buffer, wait
-  println(" CLIENT- child %d acquiring mutex ", getpid() );
+
+void arrive( int client_id ) {
+  println(" arrive ");
+  // line up in FIFO queue awaiting chance to give order.
+  // if there are more than max_people already queued, client decides to leave with probability prob.
+  if ( shared->num_queued >= max_people ) {
+    println(" max_people in queue ");
+    // enter queue with 1-prob 
+  } else {
+    // enter queue
+    sem_wait( &shared->waiting_queue );
+    enqueue( shared->queued_clients,  client_id );
+    shared->num_queued++;
+    println(" shared->num_queued = %d", shared->num_queued);
+    sem_post( &shared->waiting_queue );
+
+  }
+
+}
+
+void order( int client_id ) {
+  // consists of a single item.
+  // client proceeds to waiting queue.
   
-  sem_post( &shared->mutex );
-  sem_post( &shared->full );
-  shared->total_clients = 1;
-  println( "shared->total_clients = %d", shared->total_clients);
 
+  
+  println(" menu item is %d ", item_id );
+
+}
+
+
+void stuff() {
+
+  sem_wait( &shared->waiting_queue ); // if no waiting_queue slots, wait
+  println(" CLIENT- child %d acquiring waiting_queue mutex ", getpid() );
+  sem_post( &shared->waiting_queue );
+  shared->total_clients++;
+  println( "shared->total_clients = %d", shared->total_clients);
 
   char str[ SMALL_BUFFER ] = "Child ID is ";
   strncat( str, "test", SMALL_BUFFER );
@@ -33,8 +74,6 @@ void stuff( int shmid ) {
 
 int main( int argc, char *argv[] ) {
 
-  int item_id = ITEM_ID, eat_time = EAT_TIME, max_people = MAX_PEOPLE, prob = PROBABILITY, shared_id = SHARED_ID;
-  
   if ( argc == 1 ) {
     printClientOptions();
     return 0;
@@ -61,6 +100,9 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  if ( item_id == ITEM_ID )
+    item_id = rand() % 21;
+
   println("-------");
   println( "menu ID of meal: %d", item_id );
   println( "max time client spends eating her food: %d", eat_time );
@@ -68,7 +110,12 @@ int main( int argc, char *argv[] ) {
   println( "probably with which client decides to leave: %d", prob );
   println( "shared memory segment ID: %d", shared_id );
   println("-------");
-  stuff( shared_id );
+  
+  shared = attachSharedMem( shared_id );
+  srand( time(NULL) );
+
+  int client_id = getpid();
+  arrive( client_id );
 
   detachSharedMem( shared );
   return 0;

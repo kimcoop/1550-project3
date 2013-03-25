@@ -5,15 +5,18 @@
 #include <string.h>
 #include <semaphore.h>
 #include <unistd.h>
+#include <time.h>
+
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
-#define SHM_SIZE 1024
 #define KEY "kimcooperrider"
 #define KEY_MODE 'R'
 #define OUTPUTFILE "output.txt"
+#define INITIAL_QUEUE_SIZE 10
+#define QUEUE_SIZE 1000
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -40,23 +43,28 @@
 */
 int USE_DEFAULTS = FALSE;
 
+typedef struct {
+  int q[QUEUE_SIZE+1];		// body of queue
+  int first;              // position of first element
+  int last;               // position of last element
+  int count;              // number of queue elements
+} Queue;
+
 typedef struct { 
  	
  	int total_clients;
+ 	int num_queued;
  	float total_revenue;
  	int total_wait_time; // avg wait time (enter store -> leave)
  	//TODO: top 5 most popular menu items & how much each has generated
-
+ 	Queue *queued_clients;
  	char data[ SMALL_BUFFER ];
- 	sem_t full;
+ 	sem_t waiting_queue;
  	sem_t empty;
  	sem_t mutex; // enforce mutual exclusion to shared data
  } SharedData;
 
 SharedData* shared;
-
-
-
 
 
 
@@ -73,7 +81,7 @@ SharedData* shared;
 	void 		detachSharedMem( SharedData* );
 	void 		removeSharedMem( int );
 	void 		initSems();
-	void 		destroySemaphore();
+	void 		destroySems();
 
 /* 
  OUTPUT_HELP.C 
@@ -97,6 +105,7 @@ SharedData* shared;
 #include "utils.c"
 #include "sems.c"
 #include "menu.c"
+#include "queue.c"
 #include "output_help.c"
 
 

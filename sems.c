@@ -6,7 +6,7 @@
 	void removeSharedMem( int );
 
 	void initSems();
-	void destroySemaphore();
+	void destroySems();
 
 */
 
@@ -58,15 +58,13 @@ void removeSharedMem( int shmid ) {
 
 void initSems() {
   
-  sem_init( &shared->full, 0, 0 );
-  sem_init( &shared->empty, 0, 0 );
-  sem_init( &shared->mutex, 0, 1 );
+  sem_init( &shared->waiting_queue, 0, 0 );
 
 }
 
-void destroySemaphore() {
-	println("destroySemaphore");
-	sem_destroy( &shared->full );
-  sem_destroy( &shared->empty );
-  sem_destroy( &shared->mutex );
+void destroySems() {
+
+	println("destroySems");
+	sem_destroy( &shared->waiting_queue );
+  
 }

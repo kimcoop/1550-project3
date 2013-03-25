@@ -10,7 +10,7 @@ Due March 28, 2013
 void client( char* );
 void cashier( char* );
 void server( char* );
-void launch();
+void openDoors();
 void initSharedData();
 void initSharedMem();
 */
@@ -42,7 +42,7 @@ void server( char* shmid_str) {
   }
 }
 
-void launch() {
+void openDoors() {
   
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
@@ -75,9 +75,9 @@ void launch() {
 
 void initSharedData() {
   shared->total_clients = 0;
+  shared->num_queued = 0;
   shared->total_revenue = 0.0;
   shared->total_wait_time = 0;
-  println(" initSharedData ");
 }
 
 void initSharedMem() {
@@ -119,7 +119,7 @@ int main( int argc, char *argv[] ) {
   initSems();
   initSharedMem();
   initSharedData();
-  launch();
+  openDoors();
 
   println("waiting");
   wait( NULL ); // wait all child processes
@@ -132,10 +132,11 @@ int main( int argc, char *argv[] ) {
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
 
     detachSharedMem( shared );
-    removeSharedMem( shmid );
-    
+    destroySems();
+
   }
 
+  println(" Shmid: %d", shmid );
   return 0;
  
 }
