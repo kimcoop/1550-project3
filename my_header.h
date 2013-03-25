@@ -53,7 +53,7 @@ typedef struct {
 typedef struct { 
  	
  	//TODO: top 5 most popular menu items & how much each has generated
- 	int total_clients;
+ 	int total_clients_served;
  	int num_queued;
  	float total_revenue;
  	int total_wait_time; // avg wait time (enter store -> leave)

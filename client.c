@@ -10,10 +10,14 @@ Due March 28, 2013
 /*
 
 
-void doubleQueueSize();
-void stuff();
 void arrive();
 void order();
+void pay();
+void getReceipt();
+void getFood();
+void eat();
+void leave();
+
 void printValues();
 
 
@@ -40,7 +44,7 @@ void arrive() {
     // enter queue
 
     sem_wait( &shared->mutex );
-    log("[CLIENT] shared contents: %s", shared->data);
+    log("[CLIENT] shared->data: %s", shared->data);
     strncpy( shared->data, "child! ", SMALL_BUFFER );
     sem_post( &shared->mutex );
 
@@ -61,8 +65,35 @@ void arrive() {
 void order() {
   // consists of a single item.
   // client proceeds to waiting queue.
-  println(" menu item is %d ", item_id );
+  println("[CLIENT] menu item is %d ", item_id );
 }
+
+void pay() {
+  //
+  println("[CLIENT] pay()" );
+
+}
+
+void getReceipt() {
+  //
+  println("[CLIENT] getReceipt() ");
+}
+
+void getFood() {
+  //
+  println("[CLIENT] getFood() ");
+}
+
+void eat() {
+  //
+  println("[CLIENT] eat() ");
+}
+
+void leave() {
+  //
+  println("[CLIENT] leave() ");
+}
+
 
 void printValues() {
   println( "-------");
@@ -74,23 +105,6 @@ void printValues() {
   println( "-------");
 }
 
-
-void stuff() {
-
-  sem_wait( &shared->waiting_queue_ready ); // if no waiting_queue slots, wait
-  println("[CLIENT] child %d acquiring waiting_queue mutex ", getpid() );
-  shared->total_clients++;
-  shared->num_queued++;
-  println( "[CLIENT] shared->total_clients = %d", shared->total_clients);
-  sem_post( &shared->waiting_queue_ready );
-
-  // char str[ SMALL_BUFFER ] = "Child ID is ";
-  // strncat( str, "test", SMALL_BUFFER );
-  // strncpy( shared->data, "test", SMALL_BUFFER );
-  // println( "shared->data = %s", shared->data);
-
-  // writeToFile( OUTPUTFILE, str );
-}
 
 int main( int argc, char *argv[] ) {
 

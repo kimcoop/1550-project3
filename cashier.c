@@ -13,6 +13,14 @@ int service_time = SERVICE_TIME,
     break_time = BREAK_TIME, 
     shared_id = SHARED_ID;
 
+    
+  // char str[ SMALL_BUFFER ] = "Child ID is ";
+  // strncat( str, "test", SMALL_BUFFER );
+  // strncpy( shared->data, "test", SMALL_BUFFER );
+  // println( "shared->data = %s", shared->data);
+
+  // writeToFile( OUTPUTFILE, str );
+
 int main( int argc, char *argv[] ) {
 
   

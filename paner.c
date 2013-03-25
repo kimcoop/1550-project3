@@ -85,7 +85,7 @@ void openDoors() {
 }
 
 void initSharedData() {
-  shared->total_clients = 0;
+  shared->total_clients_served = 0;
   shared->num_queued = 0;
   shared->total_revenue = 0.0;
   shared->total_wait_time = 0;
@@ -137,7 +137,7 @@ int main( int argc, char *argv[] ) {
   wait( NULL ); // wait all child processes
   println("done waiting");
 
-  println( "[PARENT] shared->total_clients = %d", shared->total_clients);
+  println( "[PARENT] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[PARENT] shared->num_queued = %d", shared->num_queued);
   println( "[PARENT] shared->data = %s", shared->data);
 
