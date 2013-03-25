@@ -7,6 +7,7 @@ Due March 28, 2013
 */
 
 /*
+void cleanup( char* );
 void client( char* );
 void cashier( char* );
 void server( char* );
@@ -19,6 +20,16 @@ void initSharedMem();
 
 key_t key;
 int shmid;
+
+
+
+void cleanup( char* shmid_str ) {
+  println(" shmid_str is %s ", shmid_str );
+  if ( execl( "./cleanup",  "cleanup", shmid_str, (char*)0 ) == -1 ) {
+    perror( "execl" );
+    exit( EXIT_FAILURE );
+  }
+}
 
 void client( char* shmid_str ) {
   println(" shmid_str is %s ", shmid_str );
@@ -53,16 +64,16 @@ void openDoors() {
     perror("fork"); 
     exit( EXIT_FAILURE );
   } else if ( child_pid == 0 ) {
-    while ( 1 && i < 4 ) {
+    while ( i < 4 ) {
       
       client( shmid_str );
       i++;
 
     }
   } else { // parent
-    while ( 1  && j < 4 ) {
+    while ( j < 4 ) {
       sem_wait( &shared->mutex );
-      log("PARENT-  shared contents: %s", shared->data);
+      log("[PARENT] shared->data: %s", shared->data);
       strncpy( shared->data, "parent! ", SMALL_BUFFER );
       sem_post( &shared->mutex );
       j++;
@@ -78,6 +89,7 @@ void initSharedData() {
   shared->num_queued = 0;
   shared->total_revenue = 0.0;
   shared->total_wait_time = 0;
+  init_queue( &shared->waiting_queue );
 }
 
 void initSharedMem() {
@@ -125,8 +137,9 @@ int main( int argc, char *argv[] ) {
   wait( NULL ); // wait all child processes
   println("done waiting");
 
-  println( "shared->total_clients = %d", shared->total_clients);
-  println( "shared->data = %s", shared->data);
+  println( "[PARENT] shared->total_clients = %d", shared->total_clients);
+  println( "[PARENT] shared->num_queued = %d", shared->num_queued);
+  println( "[PARENT] shared->data = %s", shared->data);
 
   
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
@@ -134,9 +147,12 @@ int main( int argc, char *argv[] ) {
     detachSharedMem( shared );
     destroySems();
 
+    char shmid_str[ SMALL_BUFFER ];
+    toString( shmid_str, shmid );
+    cleanup( shmid_str );
+
   }
 
-  println(" Shmid: %d", shmid );
   return 0;
  
 }

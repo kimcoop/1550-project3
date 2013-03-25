@@ -52,15 +52,14 @@ typedef struct {
 
 typedef struct { 
  	
+ 	//TODO: top 5 most popular menu items & how much each has generated
  	int total_clients;
  	int num_queued;
  	float total_revenue;
  	int total_wait_time; // avg wait time (enter store -> leave)
- 	//TODO: top 5 most popular menu items & how much each has generated
- 	Queue *queued_clients;
+ 	Queue waiting_queue;
  	char data[ SMALL_BUFFER ];
- 	sem_t waiting_queue;
- 	sem_t empty;
+ 	sem_t waiting_queue_ready;
  	sem_t mutex; // enforce mutual exclusion to shared data
  } SharedData;
 

@@ -8,9 +8,10 @@
 	void initSems();
 	void destroySems();
 
+
 */
 
-int allocateSharedMem( key_t key ) {
+allocateSharedMem( key_t key ) {
 	// connect, maybe create, segment
 	int shmid;
   if ( ( shmid = shmget( key, sizeof( SharedData ), 0644 | IPC_CREAT )) == -1 ) { 
@@ -58,13 +59,15 @@ void removeSharedMem( int shmid ) {
 
 void initSems() {
   
-  sem_init( &shared->waiting_queue, 0, 0 );
+  sem_init( &shared->waiting_queue_ready, 0, 0 );
+  sem_init( &shared->mutex, 0, 1 );
 
 }
 
 void destroySems() {
 
 	println("destroySems");
-	sem_destroy( &shared->waiting_queue );
-  
+  sem_destroy( &shared->waiting_queue_ready );
+	sem_destroy( &shared->mutex );
+
 }

@@ -43,9 +43,9 @@ int main( int argc, char *argv[] ) {
   println("");
 
   int value;
-  sem_getvalue( &shared->full, &shared->full );
-  println(" value of shared.full is %d ", value );
-  destroySemaphore();
+  // sem_getvalue( &shared->full, &shared->full );
+  // println(" value of shared. full is %d ", value );
+  destroySems();
 
 
   return 0;
