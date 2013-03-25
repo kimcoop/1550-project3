@@ -27,8 +27,12 @@ int main( int argc, char *argv[] ) {
     // }
   // }
 
+  SharedData* shared = attachSharedMem( shmid );
+
   println( "shared memory segment ID: %d", shmid );
   println("");
+
+  destroySems();
   removeSharedMem( shmid );
   return 0;
  

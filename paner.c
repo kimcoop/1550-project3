@@ -79,9 +79,7 @@ void openDoors() {
       
     } else { // parent
       
-      sem_wait( &shared->mutex );
-      strncpy( shared->data, "parent! ", SMALL_BUFFER );
-      sem_post( &shared->mutex );
+      // meh?
       
     }
 
@@ -146,18 +144,10 @@ int main( int argc, char *argv[] ) {
 
   println( "[PARENT] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[PARENT] shared->num_queued = %d", shared->num_queued);
-  println( "[PARENT] shared->data = %s", shared->data);
 
   
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
-
     detachSharedMem( shared );
-    destroySems();
-
-    char shmid_str[ SMALL_BUFFER ];
-    toString( shmid_str, shmid );
-    cleanup( shmid_str );
-
   }
 
   return 0;

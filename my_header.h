@@ -61,10 +61,12 @@ typedef struct {
  	Queue order_queue; // clients move here after placing order
 
  	char data[ SMALL_BUFFER ];
- 	sem_t waiting_queue_ready;
- 	sem_t order_queue_ready;
- 	sem_t mutex; // enforce mutual exclusion to shared data
+ 	sem_t waiting_queue_mutex;
+ 	sem_t order_queue_mutex;
+ 	sem_t new_order; // alert the server to new order
+ 	sem_t food_ready; // back-end prep completed for order
  	
+
  } SharedData;
 
 SharedData* shared;

@@ -15,7 +15,8 @@ Due March 28, 2013
 #include  "my_header.h"
 
 int service_time = SERVICE_TIME,
-    shared_id = SHARED_ID;
+    shared_id = SHARED_ID, 
+    client_id;
 
 
 void printValues() {
@@ -28,17 +29,22 @@ void printValues() {
 }
 
 void prepareFood() {
-  println("[SERVER] prepareFood() ");
 
-  sem_wait( &shared->order_queue_ready );
-  int client_id = dequeue( &shared->order_queue );
-  println("[SERVER] servicing order for client_id %d", client_id );
-  sem_post( &shared->order_queue_ready );
+  sem_wait( &shared->new_order );
+  sem_wait( &shared->order_queue_mutex );
+  if ( !empty( &shared->order_queue ) ) { // TODO - this shouldn't be needed
+    println("[SERVER] prepareFood() ");
+    client_id = dequeue( &shared->order_queue );
+    println("[SERVER] servicing order for client_id %d", client_id );
+  }
+  sem_post( &shared->order_queue_mutex );
+  sem_post( &shared->food_ready );
 
 }
 
 void serveFood() {
-  println("[SERVER] serveFood() ");
+  sem_wait( &shared->food_ready );
+  println("[SERVER] serveFood() for client_id %d  ", client_id);
 
 }
 
@@ -67,9 +73,16 @@ int main( int argc, char *argv[] ) {
 
   // printValues();
   shared = attachSharedMem( shared_id );
-  
-  prepareFood();
-  // serveFood();
+  int i = 0;
+
+  while ( i < 10 ) {
+    prepareFood();
+    serveFood();
+    i++;
+  }
+
+  detachSharedMem( shared );
+
   
   return 0;
  
