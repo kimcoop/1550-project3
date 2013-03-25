@@ -64,13 +64,16 @@ void arrive() {
 void order() {
   // consists of a single item.
   // client proceeds to waiting queue.
-  println("[CLIENT] item_id is %d ", item_id );
-  println("[CLIENT] client_id is %d ", client_id );
+  // TODO - item_id persists
+  println("[CLIENT] ordering (%d) ", client_id );
   sem_wait( &shared->order_queue_mutex );
   sem_wait( &shared->waiting_queue_mutex );
 
   dequeue( &shared->waiting_queue ); // returns client_id
   enqueue( &shared->order_queue, client_id );
+  shared->num_queued--;
+  println("[CLIENT] shared->num_queued = %d", shared->num_queued);
+
 
   sem_post( &shared->waiting_queue_mutex );
   sem_post( &shared->order_queue_mutex );

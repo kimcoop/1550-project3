@@ -73,16 +73,11 @@ int main( int argc, char *argv[] ) {
 
   // printValues();
   shared = attachSharedMem( shared_id );
-  int i = 0;
-
-  while ( i < 10 ) {
-    prepareFood();
-    serveFood();
-    i++;
-  }
-
+  
+  prepareFood();
+  serveFood();
+  
   detachSharedMem( shared );
-
   
   return 0;
  
