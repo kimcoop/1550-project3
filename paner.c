@@ -94,6 +94,9 @@ void initSharedData() {
   shared->num_queued = 0;
   shared->total_revenue = 0.0;
   shared->total_wait_time = 0;
+  shared->num_eating = 0;
+  shared->num_exited = 0;
+  shared->num_in_store = 0;
   init_queue( &shared->waiting_queue );
   init_queue( &shared->order_queue );
 }

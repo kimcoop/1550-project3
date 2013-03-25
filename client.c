@@ -13,7 +13,6 @@ Due March 28, 2013
 void arrive();
 void order();
 void pay();
-void getReceipt();
 void getFood();
 void eat();
 void leave();
@@ -51,6 +50,7 @@ void arrive() {
     sem_wait( &shared->waiting_queue_mutex );
     enqueue( &shared->waiting_queue, client_id );
     shared->num_queued++;
+    shared->num_in_store++;
 
     println("[CLIENT] shared->num_queued = %d", shared->num_queued);
     sem_post( &shared->waiting_queue_mutex );
@@ -66,46 +66,69 @@ void order() {
   // client proceeds to waiting queue.
   // TODO - item_id persists
   println("[CLIENT] ordering (%d) ", client_id );
-  sem_wait( &shared->order_queue_mutex );
-  sem_wait( &shared->waiting_queue_mutex );
 
+  sem_wait( &shared->cashier_ready );
+  sem_wait( &shared->waiting_queue_mutex );
   dequeue( &shared->waiting_queue ); // returns client_id
-  enqueue( &shared->order_queue, client_id );
+  
   shared->num_queued--;
   println("[CLIENT] shared->num_queued = %d", shared->num_queued);
-
-
   sem_post( &shared->waiting_queue_mutex );
-  sem_post( &shared->order_queue_mutex );
-
-  sem_post( &shared->new_order );
-
 }
 
 void pay() {
   //
   println("[CLIENT] pay()" );
+  // getReceipt
+  sem_wait( &shared->order_queue_mutex );
+  enqueue( &shared->order_queue, client_id );
+  sem_post( &shared->order_queue_mutex );
+  sem_post( &shared->cashier_ready );
+
+  sem_post( &shared->new_order );
 
 }
 
-void getReceipt() {
-  //
-  println("[CLIENT] getReceipt() ");
-}
 
 void getFood() {
   //
   println("[CLIENT] getFood() ");
+  println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id);
+
+  sem_wait( &shared->serve_food );
+
+  if ( shared->food_ready_client_id == client_id ) {
+    shared->total_clients_served++;
+  }
+
+  sem_post( &shared->serve_food );
+
 }
 
 void eat() {
   //
   println("[CLIENT] eat() ");
+  sem_wait( &shared->eating_food_mutex );
+  shared->num_eating++;
+  println("[CLIENT] shared->num_eating %d ", shared->num_eating);
+  sem_post( &shared->eating_food_mutex );
 }
 
 void leave() {
   //
   println("[CLIENT] leave() ");
+  sem_wait( &shared->client_leaving_mutex );
+  shared->num_exited++;
+  shared->num_in_store--;
+
+  if ( shared->num_queued == 0 ) {
+    println("[CLIENT] all_clients_exited ");
+  }
+
+  println("[CLIENT] shared->num_exited %d ", shared->num_exited);
+  sem_post( &shared->client_leaving_mutex );
+
+
 }
 
 
@@ -160,6 +183,10 @@ int main( int argc, char *argv[] ) {
 
   arrive();
   order();
+  pay();
+  getFood();
+  eat();
+  leave();
 
 
   detachSharedMem( shared );

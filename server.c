@@ -35,6 +35,7 @@ void prepareFood() {
   if ( !empty( &shared->order_queue ) ) { // TODO - this shouldn't be needed
     println("[SERVER] prepareFood() ");
     client_id = dequeue( &shared->order_queue );
+    shared->food_ready_client_id = client_id;
     println("[SERVER] servicing order for client_id %d", client_id );
   }
   sem_post( &shared->order_queue_mutex );
@@ -44,10 +45,9 @@ void prepareFood() {
 
 void serveFood() {
   sem_wait( &shared->food_ready );
-  println("[SERVER] serveFood() for client_id %d  ", client_id);
-
+  println("[SERVER] serveFood() for client_id %d  ", shared->food_ready_client_id );
+  sem_post( &shared->serve_food );
 }
-
 
 int main( int argc, char *argv[] ) {
 
@@ -74,9 +74,13 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
   
-  prepareFood();
-  serveFood();
-  
+  do {
+    prepareFood();
+    serveFood();
+  } while ( shared->num_in_store > 0 );
+
+  println("[SERVER] all_clients_exited ");
+
   detachSharedMem( shared );
   
   return 0;

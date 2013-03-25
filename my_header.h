@@ -53,18 +53,24 @@ typedef struct {
 typedef struct { 
  	
  	//TODO: top 5 most popular menu items & how much each has generated
- 	int total_clients_served;
- 	int num_queued;
+ 	int num_in_store, total_clients_served, num_queued, num_eating, num_exited;
  	float total_revenue;
  	int total_wait_time; // avg wait time (enter store -> leave)
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
  	char data[ SMALL_BUFFER ];
+
+ 	int food_ready_client_id; // client_id for server to alert food is ready
+
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t new_order; // alert the server to new order
  	sem_t food_ready; // back-end prep completed for order
+ 	sem_t serve_food;
+ 	sem_t eating_food_mutex;
+ 	sem_t client_leaving_mutex;
+ 	sem_t cashier_ready;
  	
 
  } SharedData;
