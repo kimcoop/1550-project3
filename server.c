@@ -31,32 +31,23 @@ void printValues() {
 void prepareFood() {
 
   sem_wait( &shared->new_order );
+  println("{ SERVER! } new_order");
   sem_wait( &shared->order_queue_mutex );
 
   if ( !empty( &shared->order_queue ) ) {
     client_id = peek( &shared->order_queue );
-    println("[-SERVER-] prepareFood for client_id %d", client_id );
+    println("{ SERVER } prepareFood for client_id %d", client_id );
+    println("{ SERVER } serveFood for client_id %d  ", client_id );
+    sem_post( &shared->order_up[client_id] );
   }
 
   sem_post( &shared->order_queue_mutex );
-  sem_post( &shared->food_prepared );
+  
 
 }
 
 void serveFood() {
-  
-  sem_wait( &shared->food_prepared );
-  sem_wait( &shared->order_queue_mutex );
 
-  if ( !empty( &shared->order_queue ) ) {
-    client_id = peek( &shared->order_queue );
-    println("[-SERVER-] serveFood for client_id %d  ", client_id );
-    shared->food_ready_client_id = client_id;
-    println("[-SERVER-] shared->food_ready_client_id %d ", shared->food_ready_client_id );
-
-    sem_post( &shared->food_ready );
-  }
-  sem_post( &shared->order_queue_mutex );
 }
 
 int main( int argc, char *argv[] ) {
@@ -88,10 +79,10 @@ int main( int argc, char *argv[] ) {
   do {
     prepareFood();
     serveFood();
-  } while ( shared->num_queued > 0 || shared->num_exited == 0 );
+  } while ( shared->num_queued > 0 && OPERATE );
 
-  // println("[-SERVER-]  detachSharedMem " );
-  // detachSharedMem( shared );
+  println("{ SERVER }  detachSharedMem " );
+  detachSharedMem( shared );
   
   return 0;
  

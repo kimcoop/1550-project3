@@ -32,7 +32,7 @@ int client_id,
     shared_id = SHARED_ID;
 
 void arrive() {
-  println("[CLIENT] arrive ");
+  println("[CLIENT] %d arrive ", client_id);
   // line up in FIFO queue awaiting chance to give order.
   // if there are more than max_people already queued, client decides to leave with probability prob.
   if ( shared->num_queued >= max_people ) {
@@ -84,22 +84,16 @@ void pay() {
 void getFood() {
   //
 
-  sem_wait( &shared->food_ready );
+  sem_wait( &shared->order_up[client_id] );
+  println("[CLIENT] %d getFood ", client_id );
+  shared->total_clients_served++; // no mutex needed - no altered anywhere else
 
-  if ( shared->food_ready_client_id == client_id ) {
-    println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id );
-
-    shared->total_clients_served++;
-
-    sem_wait( &shared->order_queue_mutex );
-    int c_id = dequeue( &shared->order_queue ); // TODO - the first client in the order_queue MAY NOT BE the client_id. circle back
-    println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
-    shared->num_queued--;
-    sem_post( &shared->order_queue_mutex );
-
-  } else {
-    sem_post( &shared->food_ready ); // post for some other client
-  }
+  sem_wait( &shared->order_queue_mutex );
+  // TODO - we need some other structure to hold these since
+  int c_id = dequeue( &shared->order_queue ); // the first client in the order_queue MAY NOT BE the client_id. circle back
+  println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
+  shared->num_queued--;
+  sem_post( &shared->order_queue_mutex );
 
 }
 

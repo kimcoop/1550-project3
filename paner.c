@@ -7,6 +7,7 @@ Due March 28, 2013
 */
 
 /*
+void endDay();
 void cleanup( char* );
 void client( char*, int );
 void cashier( char* );
@@ -20,6 +21,9 @@ void initSharedMem();
 
 key_t key;
 int shmid, num_clients;
+
+void endDay() {
+}
 
 void cleanup( char* shmid_str ) {
   if ( execl( "./cleanup",  "cleanup", shmid_str, (char*)0 ) == -1 ) {
@@ -63,7 +67,7 @@ void spawnClients( char* shmid_str ) {
   pid_t child_pid;
   int i = 0;
 
-  while ( i < CLIENT_BATCH_SIZE ) {
+  while ( i < CLIENT_BATCH_SIZE && i < MAX_NUM_CLIENTS ) {
 
     if ( (child_pid = fork() ) < 0 ) {
       perror("fork"); 
@@ -135,19 +139,25 @@ int main( int argc, char *argv[] ) {
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
 
-  server( shmid_str );
   num_clients = 0;
 
   println( "[ PARENT ] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[ PARENT ] shared->num_queued = %d", shared->num_queued);
 
-  while (1) { // produce clients in groups of CLIENT_BATCH_SIZE
+  server( shmid_str );
+
+  while ( OPERATE ) { // produce clients in groups of CLIENT_BATCH_SIZE
     spawnClients( shmid_str );
     sleep( SLEEP_TIME );
+    if ( !OPERATE ) break;
+    println( "..." );
+    println( "More clients approaching!" );
+    println( "..." );
   }
+  
 
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
-    println("[+PARENT+] detaching");
+    println("[ PARENT ] detaching");
     detachSharedMem( shared );
   }
 

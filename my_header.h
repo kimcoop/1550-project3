@@ -21,6 +21,7 @@
 #define QUEUE_SIZE 1000
 #define SLEEP_TIME 20
 #define CLIENT_BATCH_SIZE 5
+#define MAX_NUM_CLIENTS 10
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -47,6 +48,7 @@
  GLOBALS
 */
 int USE_DEFAULTS = FALSE;
+int OPERATE = TRUE;
 
 typedef struct {
   int q[QUEUE_SIZE+1];		// body of queue
@@ -66,21 +68,29 @@ typedef struct {
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
- 	
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t new_order; // alert the server to new order
- 	sem_t food_prepared; // back-end prep completed for order
- 	sem_t food_ready; // food ready for client
- 	sem_t serve_food;
- 	sem_t eating_food_mutex;
+ 	sem_t order_up[MAX_NUM_CLIENTS]; // food ready for client
  	sem_t client_exit_mutex;
  	sem_t cashier_ready;
 
  } SharedData;
 
 SharedData* shared;
+
+/*
+ PANER.C
+*/
+void endDay();
+void cleanup( char* );
+void client( char*, int );
+void cashier( char* );
+void server( char* );
+void spawnClients( char* );
+void initSharedData();
+void initSharedMem();
 
 /*
  CLIENT.C

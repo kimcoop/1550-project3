@@ -22,7 +22,9 @@ void signalHandler( int sig ) {
   c = getchar();
   if ( c == 'y' || c == 'Y' ) {
   	println( "Goodbye!" );
-  	exit( EXIT_SUCCESS );
+  	// exit( EXIT_SUCCESS );
+    println( "End day! ");
+    OPERATE = FALSE; // global var to close loops for paner, server, cashiers
   } else {
   	signal( SIGINT, signalHandler );
   }
@@ -38,7 +40,7 @@ int installSignalHandler() {
 void writeToFile( char* filename, char* str ) {
   FILE *file = fopen( filename, "ab+" ); // append file (add text to a file or create a file if it does not exist)
   println(" writeToFile: %s", str );
-  fprintf( file, "%s", str ); // write
-  if ( DEBUG ) fprintf( file, "\n" );
+  fprintf( file, "%s ", str ); // write
+  // if ( DEBUG ) fprintf( file, "\n" ); // enable this when want to parse by line
   fclose( file );
 }
