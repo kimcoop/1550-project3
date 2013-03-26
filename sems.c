@@ -74,6 +74,7 @@ void initSems() {
   initSem( &shared->client_exit_mutex, "/client_exit_mutex" );
   initSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
   initSem( &shared->cashier_ready, "/cashier_ready" );
+  initSem( &shared->menu_items_mutex, "/menu_items_mutex" );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
@@ -105,6 +106,7 @@ void destroySems() {
   closeSem( &shared->client_exit_mutex, "/client_exit_mutex" );
   closeSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
   closeSem( &shared->cashier_ready, "/cashier_ready" );
+  closeSem( &shared->menu_items_mutex, "/menu_items_mutex" );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

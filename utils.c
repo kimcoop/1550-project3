@@ -22,8 +22,6 @@ void signalHandler( int sig ) {
   c = getchar();
   if ( c == 'y' || c == 'Y' ) {
   	println( "Goodbye!" );
-  	// exit( EXIT_SUCCESS );
-    println( "End day! ");
     OPERATE = FALSE; // global var to close loops for paner, server, cashiers
   } else {
   	signal( SIGINT, signalHandler );

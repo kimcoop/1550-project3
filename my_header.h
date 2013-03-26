@@ -43,6 +43,7 @@
 #define PROBABILITY 50 // client decision to leave congested restaurant
 #define SHARED_ID 1 // shared mem seg ID
 #define NUM_CASHIERS 1
+#define NUM_MENU_ITEMS 20
 
 /*
  GLOBALS
@@ -59,7 +60,6 @@ typedef struct {
 
 typedef struct { 
  	
- 	//TODO: top 5 most popular menu items & how much each has generated
  	int num_in_store, total_clients_served, num_queued, num_eating, num_exited;
  	int food_ready_client_id; // client_id for server to alert food is ready
  	int total_wait_time; // avg wait time (enter store -> leave)
@@ -68,14 +68,16 @@ typedef struct {
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
+ 	int freq_menu_items[NUM_MENU_ITEMS]; // track top (5) most popular menu items & how much each has generated
+ 	sem_t order_up[MAX_NUM_CLIENTS]; // food ready for client
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t cashier_ready;
  	sem_t new_order; // alert the server to new order
  	sem_t server_dispatch_ready; // server is prepared to give client food
- 	sem_t order_up[MAX_NUM_CLIENTS]; // food ready for client
  	sem_t client_exit_mutex;
+ 	sem_t menu_items_mutex;
 
  } SharedData;
 

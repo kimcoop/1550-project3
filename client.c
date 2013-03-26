@@ -61,7 +61,10 @@ void order() {
   sem_wait( &shared->cashier_ready );
   sleep( 1 ); // service time
 
-  println("[CLIENT] %d ordering ", client_id );
+  println("[CLIENT] %d ordering item_id %d", client_id, item_id );
+  sem_wait( &shared->menu_items_mutex );
+  shared->freq_menu_items[ item_id-1 ]++;
+  sem_post( &shared->menu_items_mutex );
 
   sem_wait( &shared->waiting_queue_mutex );
   dequeue( &shared->waiting_queue ); // returns client_id
@@ -88,6 +91,7 @@ void waitForFood() {
   println(" client waiting for food ");
   println(" item id %d ", item_id );
   int wait_time = getWaitTime( item_id );
+
   println(" wait time %d", wait_time) ;
   println("[CLIENT] %d waiting for food ", client_id );
   
