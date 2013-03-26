@@ -85,8 +85,10 @@ void pay() {
 
 void waitForFood() {
   // wait pseudo-random amount of time between rand(min) and rand(max) for item_id
-  
+  println(" client waiting for food ");
+  println(" item id %d ", item_id );
   int wait_time = getWaitTime( item_id );
+  println(" wait time %d", wait_time) ;
   println("[CLIENT] %d waiting for food ", client_id );
   
   // sleep( wait_time );
@@ -185,6 +187,7 @@ int main( int argc, char *argv[] ) {
   arrive();
   order();
   pay();
+  println(" about to waitForFood ");
   waitForFood();
   getFood();
   eat();
