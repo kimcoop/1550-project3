@@ -12,6 +12,7 @@ Due March 28, 2013
 
 void arrive();
 void order();
+void storeOrder();
 void pay();
 void waitForFood();
 void getFood();
@@ -59,17 +60,27 @@ void order() {
   // client proceeds to waiting queue.
   // TODO - item_id persists
   sem_wait( &shared->cashier_ready );
+  sem_post( &shared->client_ready_for_service );
   sleep( 1 ); // service time
 
   println("[CLIENT] %d ordering item_id %d", client_id, item_id );
-  sem_wait( &shared->menu_items_mutex );
-  shared->freq_menu_items[ item_id-1 ]++;
-  sem_post( &shared->menu_items_mutex );
+
+  storeOrder();
 
   sem_wait( &shared->waiting_queue_mutex );
   dequeue( &shared->waiting_queue ); // returns client_id
   sem_post( &shared->waiting_queue_mutex );
-  
+}
+
+void storeOrder() {
+
+  char str[ MEDIUM_BUFFER ] = "Client is ordering ";
+  strncat( str, "test\n", SMALL_BUFFER );
+  writeToFile( OUTPUT_FILE, str );
+
+  sem_wait( &shared->menu_items_mutex );
+  shared->freq_menu_items[ item_id-1 ]++;
+  sem_post( &shared->menu_items_mutex );
 
 }
 
@@ -88,11 +99,8 @@ void pay() {
 
 void waitForFood() {
   // wait pseudo-random amount of time between rand(min) and rand(max) for item_id
-  println(" client waiting for food ");
-  println(" item id %d ", item_id );
+  
   int wait_time = getWaitTime( item_id );
-
-  println(" wait time %d", wait_time) ;
   println("[CLIENT] %d waiting for food ", client_id );
   
   // sleep( wait_time );
@@ -187,6 +195,8 @@ int main( int argc, char *argv[] ) {
   // printValues();
   
   shared = attachSharedMem( shared_id );
+  int initialize = FALSE;
+  openSems( initialize );
 
   arrive();
   order();

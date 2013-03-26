@@ -5,8 +5,8 @@
 	void detachSharedMem( SharedData* );
 	void removeSharedMem( int );
 
-  void initSem( sem_t*, char* );
-  void initSems();
+  void openSem( sem_t*, char*, int );
+  void openSems( int );
   void closeSem( sem_t*, char* );
   void destroySems();
 
@@ -59,28 +59,41 @@ void removeSharedMem( int shmid ) {
   SEMAPHORES
 */
 
-void initSem( sem_t *semaphore, char* name ) {
-  if (( semaphore = sem_open( name, O_CREAT, 0644, 1 )) == SEM_FAILED ) {
-    perror( "sem_open" );
-    exit( EXIT_FAILURE );
+void openSem( sem_t *semaphore, char* name, int initialize ) { 
+  // initialize is a boolean indicating initialize sem (parent process) or open preexisting (other processes)
+  if ( initialize ) {
+    if (( semaphore = sem_open( name, O_CREAT, 0644, 0 )) == SEM_FAILED ) {
+      perror( "sem_open" );
+      exit( EXIT_FAILURE );
+    }
+  } else {
+    if (( semaphore = sem_open( name, 0644, 0 )) == SEM_FAILED ) {
+      perror( "sem_open" );
+      exit( EXIT_FAILURE );
+    }
   }
 }
 
-void initSems() {
-  
-  initSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
-  initSem( &shared->order_queue_mutex, "/order_queue_mutex" );
-  initSem( &shared->new_order, "/new_order" );
-  initSem( &shared->client_exit_mutex, "/client_exit_mutex" );
-  initSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
-  initSem( &shared->cashier_ready, "/cashier_ready" );
-  initSem( &shared->menu_items_mutex, "/menu_items_mutex" );
+void openSems( int initialize ) {
+  openSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex", initialize );
+  openSem( &shared->order_queue_mutex, "/order_queue_mutex", initialize );
+  println("Here3");
+  openSem( &shared->new_order, "/new_order", initialize );
+  openSem( &shared->client_exit_mutex, "/client_exit_mutex", initialize );
+  openSem( &shared->server_dispatch_ready, "/server_dispatch_ready", initialize );
+  println("Here");
+  openSem( &shared->cashier_ready, "/cashier_ready", initialize );
+  println("Here2");
+  openSem( &shared->menu_items_mutex, "/menu_items_mutex", initialize );
+  println("Here3");
+  openSem( &shared->client_ready_for_service, "/client_ready_for_service", initialize );
+
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
     char sem_name[ SMALL_BUFFER ];
     toString( sem_name, i );
-    initSem( &shared->order_up[i], sem_name );
+    openSem( &shared->order_up[i], sem_name, initialize );
   }
 
 }
@@ -107,6 +120,8 @@ void destroySems() {
   closeSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
   closeSem( &shared->cashier_ready, "/cashier_ready" );
   closeSem( &shared->menu_items_mutex, "/menu_items_mutex" );
+  closeSem( &shared->client_ready_for_service, "/client_ready_for_service" );
+
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

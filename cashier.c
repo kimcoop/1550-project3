@@ -8,7 +8,8 @@ Due March 28, 2013
 
 /*
 void printValues();
-void takeClient();
+void signalClient();
+void serviceClient();
 void takeBreak();
 */
 
@@ -28,22 +29,20 @@ void printValues() {
   println("");
 }
 
-  // char str[ SMALL_BUFFER ] = "Child ID is ";
-  // strncat( str, "test", SMALL_BUFFER );
-  // strncpy( shared->data, "test", SMALL_BUFFER );
-  // println( "shared->data = %s", shared->data);
-
-  // writeToFile( OUTPUTFILE, str );
-
-void takeClient() {
-  println("(CASHIER) taking client ");
+void signalClient() {
   sem_post( &shared->cashier_ready );
+  println("(CASHIER) shared->cashier_ready ");
+}
 
+void serviceClient() {
+  sem_wait( &shared->client_ready_for_service );
+  println("(CASHIER) client_ready_for_service ");
+  sleep( service_time );
 }
 
 void takeBreak() {
-  println("(CASHIER) taking break ");
   sleep( break_time );
+  println("(CASHIER) taking break ");
 }
 
 int main( int argc, char *argv[] ) {
@@ -75,9 +74,13 @@ int main( int argc, char *argv[] ) {
   
   // printValues();
   shared = attachSharedMem( shared_id );
+  int initialize = FALSE;
+  openSems( initialize );
+
   int i = 0;
   do {
-    takeClient();
+    signalClient();
+    serviceClient();
     takeBreak();
     i++;
   } while ( i < MAX_NUM_CLIENTS && OPERATE );

@@ -16,13 +16,13 @@ void printStats();
 */
 
 void printStats() {
-	println(" STATS TODO ");
 
 	println(" frequencies of items ordered:  ");
 	int i;
 	for ( i=0; i < NUM_MENU_ITEMS; i++ ) {
-		printf( "%d: %d\n", i, shared->freq_menu_items[ i-1 ]);
+		printf( "%d: %d. ", i, shared->freq_menu_items[ i-1 ]);
 
 	}
+	println("");
 
 }

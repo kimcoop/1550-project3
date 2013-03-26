@@ -7,15 +7,16 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <fcntl.h>           /* For O_* constants */
 
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
-#define KEY "kimcoopd"
+#define KEY "kimcoope"
 #define KEY_MODE 'R'
-#define OUTPUTFILE "output.txt"
+#define OUTPUT_FILE "output.txt"
 #define CLEANUP_FILE "shmids.txt"
 #define INITIAL_QUEUE_SIZE 10
 #define QUEUE_SIZE 1000
@@ -73,7 +74,8 @@ typedef struct {
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
- 	sem_t cashier_ready;
+ 	sem_t cashier_ready; // signal client cashier is available
+ 	sem_t client_ready_for_service; // signal cashier when client is at register
  	sem_t new_order; // alert the server to new order
  	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t client_exit_mutex;
@@ -101,6 +103,7 @@ void initSharedMem();
 */
 void arrive();
 void order();
+void storeOrder();
 void pay();
 void getFood();
 void eat();
@@ -110,22 +113,22 @@ void printValues();
 /* 
  UTILS.C 
 */
-	char* toString( char*, int );
-	void signalHandler( int );
-	int installSignalHandler();
-	void writeToFile( char*, char* );
+char* toString( char*, int );
+void signalHandler( int );
+int installSignalHandler();
+void writeToFile( char*, char* );
 
 /* 
  SEMS.C 
 */
-	int 		allocateSharedMem( key_t );
-	SharedData*	  attachSharedMem( int );
-	void 		detachSharedMem( SharedData* );
-	void 		removeSharedMem( int );
-	void initSem( sem_t*, char* );
-	void 		initSems();
-	void	 closeSem( sem_t*, char* );
-	void 		destroySems();
+int 		allocateSharedMem( key_t );
+SharedData*	  attachSharedMem( int );
+void 		detachSharedMem( SharedData* );
+void 		removeSharedMem( int );
+void 		openSem( sem_t*, char*,  int );
+void 		openSems( int );
+void		closeSem( sem_t*, char* );
+void 		destroySems();
 
 /* 
  STATS.C
@@ -135,19 +138,19 @@ void printValues();
 /* 
  OUTPUT_HELP.C 
 */
-	void	 printClientOptions();
-	void	 printCashierOptions();
-	void	 printServerOptions();
+void	 printClientOptions();
+void	 printCashierOptions();
+void	 printServerOptions();
 
 /*
  MENU.C
 */
-  int 		getWaitTime( int );
-	char* 	getDescription( int );
-	float 	getPrice( int );
-	int 		getMinTime( int );
-	int 		getMaxTime( int );
-	int 		isValidMenuOption( int );
+int 		getWaitTime( int );
+char* 	getDescription( int );
+float 	getPrice( int );
+int 		getMinTime( int );
+int 		getMaxTime( int );
+int 		isValidMenuOption( int );
 
 /*
  HELPERS
