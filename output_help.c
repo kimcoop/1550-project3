@@ -23,6 +23,7 @@ void printCashierOptions() {
   println( " -b <int> \t max time cashier spends in break" );
   println( " -k <int> \t number of cashiers");
   println( " -h <int> \t shared memory segment ID");
+	println( " -u <int> \t client ID");
   println("");
 }
 

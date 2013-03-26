@@ -10,8 +10,9 @@ Due March 28, 2013
 void endDay();
 void cleanup( char* );
 void client( char*, int );
-void cashier( char* );
+void cashier( char*, int );
 void server( char* );
+void spawnCashiers( char* );
 void spawnClients( char* );
 void initSharedData();
 void initSharedMem();
@@ -20,7 +21,7 @@ void initSharedMem();
 #include "my_header.h"
 
 key_t key;
-int shmid, num_clients;
+int shmid, num_clients, num_cashiers;
 
 void endDay() {
 }
@@ -42,8 +43,11 @@ void client( char* shmid_str, int client_id ) {
   }
 }
 
-void cashier( char* shmid_str ) {
-  if ( execl( "./cashier",  "cashier", "-h", shmid_str, (char*)0 ) == -1 ) {
+void cashier( char* shmid_str, int cashier_id ) {
+  char cashier_id_str[ SMALL_BUFFER ];
+  toString( cashier_id_str, cashier_id );
+
+  if ( execl( "./cashier",  "cashier", "-h", shmid_str, "-u", cashier_id_str, (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
@@ -62,12 +66,29 @@ void server( char* shmid_str) {
   }
 }
 
+void spawnCashiers( char* shmid_str ) {
+  
+  pid_t child_pid;
+  int i = 0;
+
+  while ( i < num_cashiers ) {
+
+    if ( (child_pid = fork() ) < 0 ) {
+      perror("fork"); 
+      exit( EXIT_FAILURE );
+    } else if ( child_pid == 0 ) {
+      cashier( shmid_str, i );
+    }
+
+    i++;
+  }
+}
 void spawnClients( char* shmid_str ) {
   
   pid_t child_pid;
   int i = 0;
 
-  while ( i < CLIENT_BATCH_SIZE && i < MAX_NUM_CLIENTS ) {
+  while ( i < CLIENT_BATCH_SIZE && num_clients < MAX_NUM_CLIENTS ) {
 
     if ( (child_pid = fork() ) < 0 ) {
       perror("fork"); 
@@ -101,7 +122,7 @@ void initSharedMem() {
 
 int main( int argc, char *argv[] ) {
 
-  int num_cashiers = NUM_CASHIERS; // TODO - ensure we pass other args into exec calls
+  num_cashiers = NUM_CASHIERS; // TODO - ensure we pass other args into exec calls
   
   if ( argc == 1 ) {
     printClientOptions();
@@ -139,13 +160,14 @@ int main( int argc, char *argv[] ) {
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
 
-  num_clients = 0;
 
   println( "[ PARENT ] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[ PARENT ] shared->num_queued = %d", shared->num_queued);
 
   server( shmid_str );
+  spawnCashiers( shmid_str );
 
+  num_clients = 0;
   while ( OPERATE ) { // produce clients in groups of CLIENT_BATCH_SIZE
     spawnClients( shmid_str );
     sleep( SLEEP_TIME );
@@ -155,9 +177,9 @@ int main( int argc, char *argv[] ) {
     println( "..." );
   }
   
-
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
     println("[ PARENT ] detaching");
+    printStats();
     detachSharedMem( shared );
   }
 

@@ -6,20 +6,45 @@ Project 3
 Due March 28, 2013
 */
 
+/*
+void printValues();
+void takeClient();
+void takeBreak();
+*/
 
 #include  "my_header.h"
 
 int service_time = SERVICE_TIME, 
     break_time = BREAK_TIME, 
-    shared_id = SHARED_ID;
+    shared_id = SHARED_ID,
+    cashier_id;
 
-    
+void printValues() {
+  println("----");
+  println( "max time cashier takes to service client: %i", service_time );
+  println( "max time cashier spends in break: %i", break_time );
+  println( "shared memory segment ID: %i", shared_id );
+  println("----");
+  println("");
+}
+
   // char str[ SMALL_BUFFER ] = "Child ID is ";
   // strncat( str, "test", SMALL_BUFFER );
   // strncpy( shared->data, "test", SMALL_BUFFER );
   // println( "shared->data = %s", shared->data);
 
   // writeToFile( OUTPUTFILE, str );
+
+void takeClient() {
+  println("(CASHIER) taking client ");
+  sem_post( &shared->cashier_ready );
+
+}
+
+void takeBreak() {
+  println("(CASHIER) taking break ");
+  sleep( break_time );
+}
 
 int main( int argc, char *argv[] ) {
 
@@ -42,18 +67,23 @@ int main( int argc, char *argv[] ) {
         break_time = atoi( argv[ ++i ] );
       else if ( strEqual(flag, "-h") ) 
         shared_id = atoi( argv[ ++i ] );
+      else if ( strEqual(flag, "-u") ) 
+        cashier_id = atoi( argv[ ++i ] );
     }
   }
 
-  println( "max time cashier takes to service client: %i", service_time );
-  println( "max time cashier spends in break: %i", break_time );
-  println( "shared memory segment ID: %i", shared_id );
-  println("");
+  
+  // printValues();
+  shared = attachSharedMem( shared_id );
+  int i = 0;
+  do {
+    takeClient();
+    takeBreak();
+    i++;
+  } while ( i < MAX_NUM_CLIENTS && OPERATE );
 
-  int value;
-  // sem_getvalue( &shared->full, &shared->full );
-  // println(" value of shared. full is %d ", value );
-  destroySems();
+  println("( CASHIER )  detachSharedMem " );
+  detachSharedMem( shared );
 
 
   return 0;

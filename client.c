@@ -13,6 +13,7 @@ Due March 28, 2013
 void arrive();
 void order();
 void pay();
+void waitForFood();
 void getFood();
 void eat();
 void leave();
@@ -37,6 +38,7 @@ void arrive() {
   // if there are more than max_people already queued, client decides to leave with probability prob.
   if ( shared->num_queued >= max_people ) {
     println(" max_people in queue ");
+    exit( 0 );
     // enter queue with 1-prob 
   } else {
     // enter queue
@@ -56,14 +58,15 @@ void order() {
   // consists of a single item.
   // client proceeds to waiting queue.
   // TODO - item_id persists
+  sem_wait( &shared->cashier_ready );
+  sleep( 1 ); // service time
+
   println("[CLIENT] %d ordering ", client_id );
 
   sem_wait( &shared->waiting_queue_mutex );
   dequeue( &shared->waiting_queue ); // returns client_id
-  shared->num_queued--;
   sem_post( &shared->waiting_queue_mutex );
   
-  sem_wait( &shared->cashier_ready );
 
 }
 
@@ -73,20 +76,30 @@ void pay() {
   enqueue( &shared->order_queue, client_id );
   sem_post( &shared->order_queue_mutex );
   
-  sem_wait( &shared->cashier_ready );
   println("[CLIENT] %d paying", client_id );
-  sem_post( &shared->cashier_ready );
+  // sem_post( &shared->cashier_free );
 
-  sem_post( &shared->new_order );
+  // sem_post( &shared->new_order );
 }
 
 
-void getFood() {
-  //
-
+void waitForFood() {
+  // wait pseudo-random amount of time between rand(min) and rand(max) for item_id
+  
+  int wait_time = getWaitTime( item_id );
+  println("[CLIENT] %d waiting for food ", client_id );
+  
+  // sleep( wait_time );
+  sleep( 1 );
   sem_wait( &shared->order_up[client_id] );
-  println("[CLIENT] %d getFood ", client_id );
-  shared->total_clients_served++; // no mutex needed - no altered anywhere else
+
+}
+
+void getFood() {
+
+  sem_wait( &shared->server_dispatch_ready );
+  println("[CLIENT] server_dispatch_ready");
+  shared->total_clients_served++;
 
   sem_wait( &shared->order_queue_mutex );
   // TODO - we need some other structure to hold these since
@@ -100,6 +113,7 @@ void getFood() {
 void eat() {
   //
   println("[CLIENT] %d eating", client_id );
+  sleep( eat_time );
 
 }
 
@@ -108,10 +122,6 @@ void leave() {
   sem_wait( &shared->client_exit_mutex );
   println("[CLIENT] %d leaving ", client_id );
   shared->num_exited++;
-
-  if ( empty( &shared->waiting_queue ) ) {
-    println("[CLIENT] ***** empty waiting queue **** ");
-  }
 
   println("[CLIENT] shared->num_exited %d ", shared->num_exited);
   sem_post( &shared->client_exit_mutex );
@@ -160,6 +170,7 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  srand( time(NULL) );
   if ( item_id == ITEM_ID )
     item_id = rand() % 21;
   if ( client_id == CLIENT_ID ) {
@@ -170,13 +181,11 @@ int main( int argc, char *argv[] ) {
   // printValues();
   
   shared = attachSharedMem( shared_id );
-  srand( time(NULL) );
-
-  installSignalHandler();
 
   arrive();
   order();
   pay();
+  waitForFood();
   getFood();
   eat();
   leave();

@@ -13,15 +13,15 @@
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
-#define KEY "kimcoop"
+#define KEY "kimcoopd"
 #define KEY_MODE 'R'
 #define OUTPUTFILE "output.txt"
 #define CLEANUP_FILE "shmids.txt"
 #define INITIAL_QUEUE_SIZE 10
 #define QUEUE_SIZE 1000
 #define SLEEP_TIME 20
-#define CLIENT_BATCH_SIZE 5
-#define MAX_NUM_CLIENTS 10
+#define CLIENT_BATCH_SIZE 1
+#define MAX_NUM_CLIENTS 3
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -42,7 +42,7 @@
 #define MAX_PEOPLE 5 // max people in queue for client to question entering shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
 #define SHARED_ID 1 // shared mem seg ID
-#define NUM_CASHIERS 2
+#define NUM_CASHIERS 1
 
 /*
  GLOBALS
@@ -71,10 +71,11 @@ typedef struct {
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
+ 	sem_t cashier_ready;
  	sem_t new_order; // alert the server to new order
+ 	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t order_up[MAX_NUM_CLIENTS]; // food ready for client
  	sem_t client_exit_mutex;
- 	sem_t cashier_ready;
 
  } SharedData;
 
@@ -86,9 +87,10 @@ SharedData* shared;
 void endDay();
 void cleanup( char* );
 void client( char*, int );
-void cashier( char* );
+void cashier( char*, int );
 void server( char* );
 void spawnClients( char* );
+void spawnCashiers( char* );
 void initSharedData();
 void initSharedMem();
 
@@ -118,8 +120,15 @@ void printValues();
 	SharedData*	  attachSharedMem( int );
 	void 		detachSharedMem( SharedData* );
 	void 		removeSharedMem( int );
+	void initSem( sem_t*, char* );
 	void 		initSems();
+	void	 closeSem( sem_t*, char* );
 	void 		destroySems();
+
+/* 
+ STATS.C
+*/
+ void printStats();
 
 /* 
  OUTPUT_HELP.C 
@@ -131,6 +140,7 @@ void printValues();
 /*
  MENU.C
 */
+  int 		getWaitTime( int );
 	char* 	getDescription( int );
 	float 	getPrice( int );
 	int 		getMinTime( int );
@@ -142,6 +152,7 @@ void printValues();
 */
 #include "utils.c"
 #include "sems.c"
-#include "menu.c"
 #include "queue.c"
+#include "stats.c"
 #include "output_help.c"
+#include "menu.c"

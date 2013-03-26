@@ -39,15 +39,17 @@ void prepareFood() {
     println("{ SERVER } prepareFood for client_id %d", client_id );
     println("{ SERVER } serveFood for client_id %d  ", client_id );
     sem_post( &shared->order_up[client_id] );
+  } else {
+    println("ORDER QUEUE EMPTY");
   }
 
   sem_post( &shared->order_queue_mutex );
-  
 
 }
 
 void serveFood() {
-
+  sem_post( &shared->server_dispatch_ready );
+  println("{ SERVER } server_dispatch_ready");
 }
 
 int main( int argc, char *argv[] ) {
@@ -72,14 +74,14 @@ int main( int argc, char *argv[] ) {
     }
   }
 
-  installSignalHandler();
-
   // printValues();
   shared = attachSharedMem( shared_id );
+  int i = 0;
   do {
     prepareFood();
     serveFood();
-  } while ( shared->num_queued > 0 && OPERATE );
+    i++;
+  } while ( i < MAX_NUM_CLIENTS && OPERATE );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );

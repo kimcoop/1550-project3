@@ -5,8 +5,10 @@
 	void detachSharedMem( SharedData* );
 	void removeSharedMem( int );
 
-	void initSems();
-	void destroySems();
+  void initSem( sem_t*, char* );
+  void initSems();
+  void closeSem( sem_t*, char* );
+  void destroySems();
 
 
 */
@@ -57,31 +59,58 @@ void removeSharedMem( int shmid ) {
   SEMAPHORES
 */
 
+void initSem( sem_t *semaphore, char* name ) {
+  if (( semaphore = sem_open( name, O_CREAT, 0644, 1 )) == SEM_FAILED ) {
+    perror( "sem_open" );
+    exit( EXIT_FAILURE );
+  }
+}
+
 void initSems() {
   
-  sem_init( &shared->waiting_queue_mutex, 0, 1 );
-  sem_init( &shared->order_queue_mutex, 0, 1 );
-  sem_init( &shared->new_order, 0, 1 );
-  sem_init( &shared->client_exit_mutex, 0, 1 );
+  initSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
+  initSem( &shared->order_queue_mutex, "/order_queue_mutex" );
+  initSem( &shared->new_order, "/new_order" );
+  initSem( &shared->client_exit_mutex, "/client_exit_mutex" );
+  initSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
+  initSem( &shared->cashier_ready, "/cashier_ready" );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
-    sem_init( &shared->order_up[i], 0, 1 );
+    char sem_name[ SMALL_BUFFER ];
+    toString( sem_name, i );
+    initSem( &shared->order_up[i], sem_name );
+  }
+
+}
+
+void closeSem( sem_t *semaphore, char* name ) {
+
+  if ( sem_unlink( name  ) == -1 ) {
+    perror( "sem_unlink ");
+    exit( EXIT_FAILURE );
+  }
+  if ( sem_close( semaphore ) == -1 ) {
+    perror( "sem_close ");
+    exit( EXIT_FAILURE );
   }
 
 }
 
 void destroySems() {
 
-	println("destroySems");
-  sem_destroy( &shared->waiting_queue_mutex );
-  sem_destroy( &shared->order_queue_mutex );
-  sem_destroy( &shared->new_order );
-  sem_destroy( &shared->client_exit_mutex );
+  closeSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
+  closeSem( &shared->order_queue_mutex, "/order_queue_mutex" );
+  closeSem( &shared->new_order, "/new_order" );
+  closeSem( &shared->client_exit_mutex, "/client_exit_mutex" );
+  closeSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
+  closeSem( &shared->cashier_ready, "/cashier_ready" );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
-    sem_destroy( &shared->order_up[i] );
+    char sem_name[ SMALL_BUFFER ];
+    toString( sem_name, i );
+    closeSem( &shared->order_up[i], sem_name );
   }
 
 }
