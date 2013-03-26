@@ -16,8 +16,11 @@
 #define KEY "kimcoop"
 #define KEY_MODE 'R'
 #define OUTPUTFILE "output.txt"
+#define CLEANUP_FILE "shmids.txt"
 #define INITIAL_QUEUE_SIZE 10
 #define QUEUE_SIZE 1000
+#define SLEEP_TIME 20
+#define CLIENT_BATCH_SIZE 5
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -33,6 +36,7 @@
 #define SERVICE_TIME 5 // max time random [1..service_time] this cashier takes to service
 #define BREAK_TIME 5 // max break time random [1..break_time]
 #define ITEM_ID 1 // menu ID of the meal
+#define CLIENT_ID -1
 #define EAT_TIME 5 // max time random [1..eat_time] client spends eating food before leaving
 #define MAX_PEOPLE 5 // max people in queue for client to question entering shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
@@ -62,7 +66,7 @@ typedef struct {
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
- 	char data[ SMALL_BUFFER ];
+ 	
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
@@ -78,7 +82,16 @@ typedef struct {
 
 SharedData* shared;
 
-
+/*
+ CLIENT.C
+*/
+void arrive();
+void order();
+void pay();
+void getFood();
+void eat();
+void leave();
+void printValues();
 
 /* 
  UTILS.C 

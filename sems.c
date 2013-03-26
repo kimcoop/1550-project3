@@ -11,16 +11,16 @@
 
 */
 
-allocateSharedMem( key_t key ) {
+int allocateSharedMem( key_t key ) {
 	// connect, maybe create, segment
 	int shmid;
 
   //TODO use key
-  if ( ( shmid = shmget( IPC_PRIVATE, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
+  if ( ( shmid = shmget( key, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
     perror("shmget");
-    exit(1);
+    return -1;
   } else {
-   return shmid;
+    return shmid;
   }
 
 }
@@ -29,7 +29,7 @@ SharedData* attachSharedMem( int shmid ) {
 
 	SharedData* data;
   if ( (data = shmat( shmid, ( void* )0, 0 )) == ( SharedData* )(-1) ) { //attach to get ptr
-    exit(1);
+    return NULL;
     perror("shmat");
   } else {
   	return data;
@@ -41,7 +41,6 @@ void detachSharedMem( SharedData* data ) {
 
   if ( shmdt(data) == -1 ) {
     perror("shmdt");
-    exit(1);
   }
 
 }
@@ -50,7 +49,6 @@ void removeSharedMem( int shmid ) {
 	println("removeSharedMem %d",shmid);
 	if ( shmctl( shmid, IPC_RMID, NULL ) == -1 ) {
     perror("shmtcl");
-    exit(1);
   }
 
 }

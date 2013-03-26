@@ -31,11 +31,11 @@ void printValues() {
 void prepareFood() {
 
   sem_wait( &shared->new_order );
-  
   sem_wait( &shared->order_queue_mutex );
-  if ( !empty( &shared->order_queue ) ) { // TODO - this shouldn't be needed
+
+  if ( !empty( &shared->order_queue ) ) {
     client_id = peek( &shared->order_queue );
-    println("[SERVER] prepareFood for client_id %d", client_id );
+    println("[-SERVER-] prepareFood for client_id %d", client_id );
   }
 
   sem_post( &shared->order_queue_mutex );
@@ -44,13 +44,19 @@ void prepareFood() {
 }
 
 void serveFood() {
-  sem_wait( &shared->order_queue_mutex );
-  client_id = dequeue( &shared->order_queue );
-  sem_post( &shared->order_queue_mutex );
-
+  
   sem_wait( &shared->food_prepared );
-  println("[SERVER] serveFood for client_id %d  ", client_id );
-  sem_post( &shared->food_ready );
+  sem_wait( &shared->order_queue_mutex );
+
+  if ( !empty( &shared->order_queue ) ) {
+    client_id = peek( &shared->order_queue );
+    println("[-SERVER-] serveFood for client_id %d  ", client_id );
+    shared->food_ready_client_id = client_id;
+    println("[-SERVER-] shared->food_ready_client_id %d ", shared->food_ready_client_id );
+
+    sem_post( &shared->food_ready );
+  }
+  sem_post( &shared->order_queue_mutex );
 }
 
 int main( int argc, char *argv[] ) {
@@ -79,17 +85,14 @@ int main( int argc, char *argv[] ) {
 
   // printValues();
   shared = attachSharedMem( shared_id );
-  int i =0 ;
   do {
     prepareFood();
     serveFood();
-    i++;
   } while ( shared->num_queued > 0 || shared->num_exited == 0 );
 
-  println("[SERVER]  detachSharedMem " );
-
-  detachSharedMem( shared );
+  // println("[-SERVER-]  detachSharedMem " );
+  // detachSharedMem( shared );
   
-  exit( 0 );
+  return 0;
  
 }

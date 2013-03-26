@@ -12,6 +12,7 @@ void printClientOptions() {
 	println( " -m <int>\t max people in queue");
 	println( " -p <int>\t probably with which client decides to leave");
 	println( " -h <int> \t shared memory segment ID");
+	println( " -x <int> \t client ID");
 	println("");	
 }
 

@@ -42,7 +42,7 @@ void arrive() {
     // enter queue
 
     sem_wait( &shared->waiting_queue_mutex );
-    enqueue( &shared->waiting_queue, client_id );
+    enqueue( &shared->waiting_queue, client_id ); // waiting to place order
     shared->num_queued++;
 
     println("[CLIENT] shared->num_queued = %d", shared->num_queued);
@@ -83,13 +83,20 @@ void pay() {
 
 void getFood() {
   //
-  println("[CLIENT] %d getFood ", client_id );
-  println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id );
 
   sem_wait( &shared->food_ready );
 
   if ( shared->food_ready_client_id == client_id ) {
+    println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id );
+
     shared->total_clients_served++;
+
+    sem_wait( &shared->order_queue_mutex );
+    int c_id = dequeue( &shared->order_queue ); // TODO - the first client in the order_queue MAY NOT BE the client_id. circle back
+    println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
+    shared->num_queued--;
+    sem_post( &shared->order_queue_mutex );
+
   } else {
     sem_post( &shared->food_ready ); // post for some other client
   }
@@ -98,11 +105,8 @@ void getFood() {
 
 void eat() {
   //
-  sem_wait( &shared->eating_food_mutex );
   println("[CLIENT] %d eating", client_id );
-  shared->num_eating++;
-  println("[CLIENT] shared->num_eating %d ", shared->num_eating);
-  sem_post( &shared->eating_food_mutex );
+
 }
 
 void leave() {
@@ -112,12 +116,11 @@ void leave() {
   shared->num_exited++;
 
   if ( empty( &shared->waiting_queue ) ) {
-    println("[CLIENT] *****empty waiting queue**** ");
+    println("[CLIENT] ***** empty waiting queue **** ");
   }
 
   println("[CLIENT] shared->num_exited %d ", shared->num_exited);
   sem_post( &shared->client_exit_mutex );
-
 
 }
 
@@ -158,17 +161,22 @@ int main( int argc, char *argv[] ) {
         prob = atoi( argv[++i] );
       else if ( strEqual(flag, "-h") ) 
         shared_id = atoi( argv[++i] );
+      else if ( strEqual(flag, "-x") )
+        client_id = atoi( argv[++i] );
     }
   }
 
   if ( item_id == ITEM_ID )
     item_id = rand() % 21;
+  if ( client_id == CLIENT_ID ) {
+    println( "Error: client ID not passed into client. " );
+    exit( EXIT_FAILURE );
+  }
 
   // printValues();
   
   shared = attachSharedMem( shared_id );
   srand( time(NULL) );
-  client_id = getpid();
 
   installSignalHandler();
 

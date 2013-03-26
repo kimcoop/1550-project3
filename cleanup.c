@@ -8,32 +8,23 @@ Due March 28, 2013
 
 #include  "my_header.h"
 
-int main( int argc, char *argv[] ) {
+int main( int argc, char *argv[] ) { // TODO: parse SHMIDS.TXT and iteratively cleanup
   
-  int shmid;
-  // if ( argc == 1 ) { 
-  //   return 0;
-  // } else if ( (argc-1) % 2 != 0 ) {
-  //   println("Malformed flags.");
-  //   return EXIT_FAILURE;
-  // } else { 
-    
-    // int i;
-    // char flag[ SMALL_BUFFER ];
-    // for ( i = 1; i < argc; i++ ) {
-    //   strcpy( flag, argv[ i ] );
-    //   if ( strEqual(flag, "-h") ) 
-        shmid = atoi( argv[ 1 ] );
-    // }
-  // }
+  int shmid, i;
+  if ( argc-1 == 0 ) {
+    println( "Usage: ./cleanup <shmid1> <shmid2> ..." );
+  } else {
+    for ( i = 1; i <= argc-1; i++ ) {
+      shmid = atoi( argv[ i ] );
+      println( "Cleaning up shmid: %d", shmid );
+      shared = attachSharedMem( shmid );
+      destroySems();
+      detachSharedMem( shared );
+      removeSharedMem( shmid );
+    }
 
-  SharedData* shared = attachSharedMem( shmid );
+  }
 
-  println( "shared memory segment ID: %d", shmid );
-  println("");
-
-  destroySems();
-  removeSharedMem( shmid );
   return 0;
  
 }

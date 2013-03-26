@@ -15,14 +15,14 @@ char* toString( char* str, int i ) {
 }
 
 void signalHandler( int sig ) {
-  puts("Interactive attention signal caught.");
-  char c;
+  println( "Interactive attention signal caught." );
   signal( sig, SIG_IGN );
-  printf( "OOF do you really want to quit? (y/n): ");
+  char c;
+  printf( "Do you really want to quit? (y/n): ");
   c = getchar();
   if ( c == 'y' || c == 'Y' ) {
+  	println( "Goodbye!" );
   	exit( EXIT_SUCCESS );
-  	println( "Goodbye! ");
   } else {
   	signal( SIGINT, signalHandler );
   }
