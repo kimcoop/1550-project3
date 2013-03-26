@@ -7,7 +7,7 @@
 void printClientOptions() {
 	println("");
 	println("Client Options:");
-	println( " -i <int>\t menu ID of meal");
+	println( " -i <int>\t menu item ID ");
 	println( " -e <int> \t max time client spends eating her food");
 	println( " -m <int>\t max people in queue");
 	println( " -p <int>\t probably with which client decides to leave");

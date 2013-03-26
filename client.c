@@ -31,7 +31,6 @@ int client_id,
     prob = PROBABILITY, 
     shared_id = SHARED_ID;
 
-
 void arrive() {
   println("[CLIENT] arrive ");
   // line up in FIFO queue awaiting chance to give order.
@@ -42,20 +41,12 @@ void arrive() {
   } else {
     // enter queue
 
-    // sem_wait( &shared->mutex );
-    // log("[CLIENT] shared->data: %s", shared->data);
-    // strncpy( shared->data, "child! ", SMALL_BUFFER );
-    // sem_post( &shared->mutex );
-
     sem_wait( &shared->waiting_queue_mutex );
     enqueue( &shared->waiting_queue, client_id );
     shared->num_queued++;
-    shared->num_in_store++;
 
     println("[CLIENT] shared->num_queued = %d", shared->num_queued);
     sem_post( &shared->waiting_queue_mutex );
-
-
 
   }
 
@@ -65,50 +56,50 @@ void order() {
   // consists of a single item.
   // client proceeds to waiting queue.
   // TODO - item_id persists
-  println("[CLIENT] ordering (%d) ", client_id );
+  println("[CLIENT] %d ordering ", client_id );
 
-  sem_wait( &shared->cashier_ready );
   sem_wait( &shared->waiting_queue_mutex );
   dequeue( &shared->waiting_queue ); // returns client_id
-  
   shared->num_queued--;
-  println("[CLIENT] shared->num_queued = %d", shared->num_queued);
   sem_post( &shared->waiting_queue_mutex );
+  
+  sem_wait( &shared->cashier_ready );
+
 }
 
 void pay() {
   //
-  println("[CLIENT] pay()" );
-  // getReceipt
   sem_wait( &shared->order_queue_mutex );
   enqueue( &shared->order_queue, client_id );
   sem_post( &shared->order_queue_mutex );
+  
+  sem_wait( &shared->cashier_ready );
+  println("[CLIENT] %d paying", client_id );
   sem_post( &shared->cashier_ready );
 
   sem_post( &shared->new_order );
-
 }
 
 
 void getFood() {
   //
-  println("[CLIENT] getFood() ");
-  println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id);
+  println("[CLIENT] %d getFood ", client_id );
+  println("[CLIENT] shared->food_ready_client_id %d ", shared->food_ready_client_id );
 
-  sem_wait( &shared->serve_food );
+  sem_wait( &shared->food_ready );
 
   if ( shared->food_ready_client_id == client_id ) {
     shared->total_clients_served++;
+  } else {
+    sem_post( &shared->food_ready ); // post for some other client
   }
-
-  sem_post( &shared->serve_food );
 
 }
 
 void eat() {
   //
-  println("[CLIENT] eat() ");
   sem_wait( &shared->eating_food_mutex );
+  println("[CLIENT] %d eating", client_id );
   shared->num_eating++;
   println("[CLIENT] shared->num_eating %d ", shared->num_eating);
   sem_post( &shared->eating_food_mutex );
@@ -116,17 +107,16 @@ void eat() {
 
 void leave() {
   //
-  println("[CLIENT] leave() ");
-  sem_wait( &shared->client_leaving_mutex );
+  sem_wait( &shared->client_exit_mutex );
+  println("[CLIENT] %d leaving ", client_id );
   shared->num_exited++;
-  shared->num_in_store--;
 
-  if ( shared->num_queued == 0 ) {
-    println("[CLIENT] all_clients_exited ");
+  if ( empty( &shared->waiting_queue ) ) {
+    println("[CLIENT] *****empty waiting queue**** ");
   }
 
   println("[CLIENT] shared->num_exited %d ", shared->num_exited);
-  sem_post( &shared->client_leaving_mutex );
+  sem_post( &shared->client_exit_mutex );
 
 
 }
@@ -178,8 +168,9 @@ int main( int argc, char *argv[] ) {
   
   shared = attachSharedMem( shared_id );
   srand( time(NULL) );
-
   client_id = getpid();
+
+  installSignalHandler();
 
   arrive();
   order();
@@ -188,9 +179,9 @@ int main( int argc, char *argv[] ) {
   eat();
   leave();
 
-
+  println( "[CLIENT] %d detaching", client_id );
   detachSharedMem( shared );
 
-  return 0;
+  exit( 0 );
  
 }

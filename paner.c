@@ -56,8 +56,6 @@ void openDoors() {
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
 
-  
-
   pid_t child_pid;
   int i = 0;
 
@@ -71,22 +69,14 @@ void openDoors() {
       if ( i == 0 ) {
         server( shmid_str ); // spawn exactly one server
       } else {
-
         client( shmid_str );
-        
       }
-
       
     } else { // parent
-      
       // meh?
-      
     }
-
     i++;
-
   }
-
 }
 
 void initSharedData() {
@@ -134,22 +124,22 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  installSignalHandler();
+
   int parent_id = getpid(); // gather while we know we are parent (only) process
   setbuf( stdout, NULL ); // stdout is unbuffered
-
+  
   initSems();
   initSharedMem();
   initSharedData();
   openDoors();
 
-  wait( NULL ); // wait all child processes
-  println("done waiting");
-
   println( "[PARENT] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[PARENT] shared->num_queued = %d", shared->num_queued);
-
   
+  wait( NULL );
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
+    println("[PARENT] detaching");
     detachSharedMem( shared );
   }
 

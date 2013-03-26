@@ -14,11 +14,13 @@
 allocateSharedMem( key_t key ) {
 	// connect, maybe create, segment
 	int shmid;
-  if ( ( shmid = shmget( key, sizeof( SharedData ), 0644 | IPC_CREAT )) == -1 ) { 
+
+  //TODO use key
+  if ( ( shmid = shmget( IPC_PRIVATE, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
     perror("shmget");
     exit(1);
   } else {
-  	return shmid;
+   return shmid;
   }
 
 }
@@ -36,8 +38,6 @@ SharedData* attachSharedMem( int shmid ) {
 }
 
 void detachSharedMem( SharedData* data ) {
-
-	println("detachSharedMem");
 
   if ( shmdt(data) == -1 ) {
     perror("shmdt");
@@ -62,10 +62,11 @@ void initSems() {
   sem_init( &shared->waiting_queue_mutex, 0, 1 );
   sem_init( &shared->order_queue_mutex, 0, 0 );
   sem_init( &shared->new_order, 0, 1 );
+  sem_init( &shared->food_prepared, 0, 1 );
   sem_init( &shared->food_ready, 0, 1 );
   sem_init( &shared->serve_food, 0, 1 );
   sem_init( &shared->eating_food_mutex, 0, 1 );
-  sem_init( &shared->client_leaving_mutex, 0, 1 );
+  sem_init( &shared->client_exit_mutex, 0, 1 );
 
 }
 
@@ -75,8 +76,9 @@ void destroySems() {
   sem_destroy( &shared->waiting_queue_mutex );
   sem_destroy( &shared->order_queue_mutex );
   sem_destroy( &shared->new_order );
+  sem_destroy( &shared->food_prepared );
   sem_destroy( &shared->food_ready );
   sem_destroy( &shared->eating_food_mutex );
-  sem_destroy( &shared->client_leaving_mutex );
+  sem_destroy( &shared->client_exit_mutex );
 
 }

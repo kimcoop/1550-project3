@@ -31,22 +31,26 @@ void printValues() {
 void prepareFood() {
 
   sem_wait( &shared->new_order );
+  
   sem_wait( &shared->order_queue_mutex );
   if ( !empty( &shared->order_queue ) ) { // TODO - this shouldn't be needed
-    println("[SERVER] prepareFood() ");
-    client_id = dequeue( &shared->order_queue );
-    shared->food_ready_client_id = client_id;
-    println("[SERVER] servicing order for client_id %d", client_id );
+    client_id = peek( &shared->order_queue );
+    println("[SERVER] prepareFood for client_id %d", client_id );
   }
+
   sem_post( &shared->order_queue_mutex );
-  sem_post( &shared->food_ready );
+  sem_post( &shared->food_prepared );
 
 }
 
 void serveFood() {
-  sem_wait( &shared->food_ready );
-  println("[SERVER] serveFood() for client_id %d  ", shared->food_ready_client_id );
-  sem_post( &shared->serve_food );
+  sem_wait( &shared->order_queue_mutex );
+  client_id = dequeue( &shared->order_queue );
+  sem_post( &shared->order_queue_mutex );
+
+  sem_wait( &shared->food_prepared );
+  println("[SERVER] serveFood for client_id %d  ", client_id );
+  sem_post( &shared->food_ready );
 }
 
 int main( int argc, char *argv[] ) {
@@ -71,18 +75,21 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  installSignalHandler();
+
   // printValues();
   shared = attachSharedMem( shared_id );
-  
+  int i =0 ;
   do {
     prepareFood();
     serveFood();
-  } while ( shared->num_in_store > 0 );
+    i++;
+  } while ( shared->num_queued > 0 || shared->num_exited == 0 );
 
-  println("[SERVER] all_clients_exited ");
+  println("[SERVER]  detachSharedMem " );
 
   detachSharedMem( shared );
   
-  return 0;
+  exit( 0 );
  
 }

@@ -53,6 +53,18 @@ int dequeue(Queue *q)
         return(x);
 }
 
+int peek(Queue *q )
+{
+        int x;
+
+        if (q->count <= 0) printf("Warning: empty queue peek.\n");
+        else {
+                x = q->q[ q->first ];
+        }
+
+        return(x);
+}
+
 int empty(Queue *q)
 {
         if (q->count <= 0) return (TRUE);

@@ -6,13 +6,14 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
-#define KEY "kimcooperrider"
+#define KEY "kimcoop"
 #define KEY_MODE 'R'
 #define OUTPUTFILE "output.txt"
 #define INITIAL_QUEUE_SIZE 10
@@ -54,24 +55,24 @@ typedef struct {
  	
  	//TODO: top 5 most popular menu items & how much each has generated
  	int num_in_store, total_clients_served, num_queued, num_eating, num_exited;
- 	float total_revenue;
+ 	int food_ready_client_id; // client_id for server to alert food is ready
  	int total_wait_time; // avg wait time (enter store -> leave)
+ 	
+ 	float total_revenue;
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
  	char data[ SMALL_BUFFER ];
 
- 	int food_ready_client_id; // client_id for server to alert food is ready
-
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t new_order; // alert the server to new order
- 	sem_t food_ready; // back-end prep completed for order
+ 	sem_t food_prepared; // back-end prep completed for order
+ 	sem_t food_ready; // food ready for client
  	sem_t serve_food;
  	sem_t eating_food_mutex;
- 	sem_t client_leaving_mutex;
+ 	sem_t client_exit_mutex;
  	sem_t cashier_ready;
- 	
 
  } SharedData;
 
@@ -83,6 +84,9 @@ SharedData* shared;
  UTILS.C 
 */
 	char* toString( char*, int );
+	void signalHandler( int );
+	int installSignalHandler();
+	void writeToFile( char*, char* );
 
 /* 
  SEMS.C 
@@ -118,13 +122,3 @@ SharedData* shared;
 #include "menu.c"
 #include "queue.c"
 #include "output_help.c"
-
-
-
-void writeToFile( char* filename, char* str ) {
-  FILE *file = fopen( filename, "ab+" ); // append file (add text to a file or create a file if it does not exist)
-  println(" writeToFile: %s", str );
-  fprintf( file, "%s", str ); // write
-  if ( DEBUG ) fprintf( file, "\n" );
-  fclose( file );
-}
