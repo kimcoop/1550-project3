@@ -8,6 +8,7 @@
 #include <time.h>
 #include <signal.h>
 #include <fcntl.h>           /* For O_* constants */
+#include <errno.h>
 
 
 #define MEDIUM_BUFFER 32
@@ -125,9 +126,7 @@ int 		allocateSharedMem( key_t );
 SharedData*	  attachSharedMem( int );
 void 		detachSharedMem( SharedData* );
 void 		removeSharedMem( int );
-void openSem( sem_t*, char* );
-void openSems();
-void		closeSem( sem_t*, char* );
+void 		initSems();
 void 		destroySems();
 
 /* 

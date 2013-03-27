@@ -5,9 +5,8 @@
 	void detachSharedMem( SharedData* );
 	void removeSharedMem( int );
 
-  void openSem( sem_t*, char* );
-  void openSems();
-  void closeSem( sem_t*, char* );
+  
+  void initSems();
   void destroySems();
 
 
@@ -59,65 +58,39 @@ void removeSharedMem( int shmid ) {
   SEMAPHORES
 */
 
-void openSem( sem_t *semaphore, char* name  ) { 
-  //  initialize sem (parent process) or open preexisting (other processes)
-  if (( semaphore = sem_open( name, O_CREAT, 0644, 0 )) == SEM_FAILED ) {
-    perror( "sem_open" );
-    exit( EXIT_FAILURE );
-  }
-
-}
-
-void openSems() {
-  openSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
-  openSem( &shared->order_queue_mutex, "/order_queue_mutex" );
-  openSem( &shared->new_order, "/new_order" );
-  openSem( &shared->client_exit_mutex, "/client_exit_mutex" );
-  openSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
-  openSem( &shared->cashier_ready, "/cashier_ready" );
-  openSem( &shared->menu_items_mutex, "/menu_items_mutex" );
-  openSem( &shared->client_ready_for_service, "/client_ready_for_service" );
-
+void initSems() {
+  sem_init( &shared->waiting_queue_mutex, 0, 1 );
+  sem_init( &shared->order_queue_mutex, 0, 1 );
+  sem_init( &shared->new_order, 0, 1 );
+  sem_init( &shared->client_exit_mutex, 0, 1 );
+  sem_init( &shared->server_dispatch_ready, 0, 1 );
+  sem_init( &shared->cashier_ready, 0, 1 );
+  sem_init( &shared->menu_items_mutex, 0, 1 );
+  sem_init( &shared->client_ready_for_service, 0, 1 );
+  ;
 
   int i;
-  for ( i=0; i < MAX_NUM_CLIENTS; i++ ) {
-    char sem_name[ SMALL_BUFFER ];
-    toString( sem_name, i );
-    openSem( &shared->order_up[i], sem_name );
-  }
-
-}
-
-void closeSem( sem_t *semaphore, char* name ) {
-  if ( sem_close( semaphore ) == -1 ) {
-    perror( "sem_close ");
-    exit( EXIT_FAILURE );
-  }
-
-  if ( sem_unlink( name  ) == -1 ) {
-    perror( "sem_unlink ");
-    exit( EXIT_FAILURE );
+  for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
+    sem_init( &shared->order_up[i], 0, 1 );
   }
 
 }
 
 void destroySems() {
 
-  closeSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
-  closeSem( &shared->order_queue_mutex, "/order_queue_mutex" );
-  closeSem( &shared->new_order, "/new_order" );
-  closeSem( &shared->client_exit_mutex, "/client_exit_mutex" );
-  closeSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
-  closeSem( &shared->cashier_ready, "/cashier_ready" );
-  closeSem( &shared->menu_items_mutex, "/menu_items_mutex" );
-  closeSem( &shared->client_ready_for_service, "/client_ready_for_service" );
-
-
+  println( "Destroying sempahores." );
+  sem_destroy( &shared->waiting_queue_mutex );
+  sem_destroy( &shared->order_queue_mutex );
+  sem_destroy( &shared->new_order );
+  sem_destroy( &shared->client_exit_mutex );
+  sem_destroy( &shared->server_dispatch_ready );
+  sem_destroy( &shared->cashier_ready );
+  sem_destroy( &shared->menu_items_mutex );
+  sem_destroy( &shared->client_ready_for_service );
+  
   int i;
-  for ( i=0; i < MAX_NUM_CLIENTS; i++ ) {
-    char sem_name[ SMALL_BUFFER ];
-    toString( sem_name, i );
-    closeSem( &shared->order_up[i], sem_name );
+  for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
+    sem_destroy( &shared->order_up[i] );
   }
 
 }

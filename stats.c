@@ -13,7 +13,7 @@ Due March 28, 2013
 void printStats();
 void clientStats();
 void avgWaitTime();
-void totalClients();
+int totalClients();
 float itemRevenue( int );
 
 */
@@ -41,13 +41,13 @@ float totalRevenue() {
 	return total_sum;
 }
 
-void totalClients() {
-
+int totalClients() {
+	return shared->total_clients_served;
 }
 
 void printStats() {
 
-	println(" frequencies of items ordered:  ");
+	println(" Frequencies of items ordered:  ");
 	int i;
 	for ( i=0; i < NUM_MENU_ITEMS; i++ ) {
 		printf( "(%d: %d)  ", i, shared->freq_menu_items[ i-1 ]);
@@ -55,6 +55,7 @@ void printStats() {
 	println( "" );
 	println( "-------" );
 	println( "Total revenue: %.2f", totalRevenue() );
+	println( "Total clients served: %d", totalClients() );
 	println( "-------" );
 
 }

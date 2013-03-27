@@ -74,8 +74,6 @@ int main( int argc, char *argv[] ) {
   
   // printValues();
   shared = attachSharedMem( shared_id );
-  int initialize = FALSE;
-  openSems( initialize );
 
   int i = 0;
   do {

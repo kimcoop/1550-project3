@@ -195,7 +195,10 @@ int main( int argc, char *argv[] ) {
   // printValues();
   
   shared = attachSharedMem( shared_id );
-  openSems();
+
+  if (sem_wait( &shared->cashier_ready ) == -1) {
+    perror( "sem_wait ");
+  }
 
   arrive();
   order();
