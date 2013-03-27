@@ -4,6 +4,7 @@ char* toString( char*, int );
 void signalHandler( int );
 int installSignalHandler();
 void writeToFile( char*, char* );
+void emptyFile( char* );
 
 */
 
@@ -41,4 +42,11 @@ void writeToFile( char* filename, char* str ) {
   fprintf( file, "%s ", str ); // write
   fprintf( file, "\n" );
   fclose( file );
+}
+
+void emptyFile( char* filename ) {
+  println( "Clearing file contents from %s", filename );
+  FILE *fp = fopen( filename, "w" ); // clear out contents
+  fprintf( fp, "" );
+  fclose( fp );
 }

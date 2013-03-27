@@ -7,7 +7,7 @@ Due March 28, 2013
 */
 
 /*
-void cleanup( char* );
+void cleanup();
 void client( char*, int );
 void cashier( char*, int );
 void server( char* );
@@ -23,8 +23,8 @@ key_t key;
 int shmid, num_clients, num_cashiers;
 
 
-void cleanup( char* shmid_str ) {
-  if ( execl( "./cleanup",  "cleanup", shmid_str, (char*)0 ) == -1 ) {
+void cleanup() {
+  if ( execl( "./cleanup",  "cleanup", "all", (char*)0 ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
@@ -144,10 +144,12 @@ int main( int argc, char *argv[] ) {
     }
   }
 
+  // some housekeeping
   installSignalHandler();
-
+  emptyFile( DB_FILE );
   int parent_id = getpid(); // gather while we know we are parent (only) process
   setbuf( stdout, NULL ); // stdout is unbuffered
+
   
   initSems();
   initSharedMem();
@@ -163,20 +165,20 @@ int main( int argc, char *argv[] ) {
   server( shmid_str );
   spawnCashiers( shmid_str );
 
-  num_clients = 0;
+  num_clients = 0; // helps assign client_id for each client spawned
   while ( OPERATE ) { // produce clients in groups of CLIENT_BATCH_SIZE
     spawnClients( shmid_str );
     sleep( SLEEP_TIME );
     if ( !OPERATE ) break;
     println( "..." );
-    println( "More clients approaching!" );
+    println( "%d more clients approaching!", CLIENT_BATCH_SIZE );
     println( "..." );
   }
   
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
-    println("[ PARENT ] detaching");
     printStats();
-    detachSharedMem( shared );
+    detachSharedMem( shared ); // note that printStats() requires access to shared, so this must come after
+    cleanup(); // scrapes shmids dumped in file and cleans them all
   }
 
   return 0;

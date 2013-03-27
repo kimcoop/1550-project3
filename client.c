@@ -74,10 +74,10 @@ void order() {
 void storeOrder() {
 
   sem_wait( &shared->db_mutex );
-  FILE *file = fopen( DB_FILE, "ab+" );
-  fprintf( file, "Client %d ordered item %d (%s, $%.2f)", client_id, item_id, getDescription( item_id ), getPrice( item_id ) );
-  fprintf( file, "\n" );
-  fclose( file );
+  FILE *fp = fopen( DB_FILE, "ab+" );
+  fprintf( fp, "Client %d ordered item %d (%s, $%.2f)", client_id, item_id, getDescription( item_id ), getPrice( item_id ) );
+  fprintf( fp, "\n" );
+  fclose( fp );
   sem_post( &shared->db_mutex );
 
   sem_wait( &shared->menu_items_mutex );
@@ -205,7 +205,6 @@ int main( int argc, char *argv[] ) {
   arrive();
   order();
   pay();
-  println(" about to waitForFood ");
   waitForFood();
   getFood();
   eat();

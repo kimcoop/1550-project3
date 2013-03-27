@@ -49,7 +49,7 @@ void printStats() {
 
 	printf( "\n" );
 	printf( "ItemID \t | \tTimes Ordered \t| \tRevenue \t| \tDescription \t\n" );
-	printf( "----------------\n" );
+	printf( "-----------------------------------------------------------------------------------\n" );
 	printf( "\n" );
 	int i, freq;
 	float revenue;
@@ -63,10 +63,10 @@ void printStats() {
 		printf( "\n" );
 	}
 	printf( "\n" );
-	printf( "-------\n");
+	printf( "-------------------------\n" );
 	printf( "Total revenue: $%.2f\n", totalRevenue() );
 	printf( "Total clients served: %d\n", totalClients() );
-	printf( "-------\n");
+	printf( "-------------------------\n" );
 
 }
 

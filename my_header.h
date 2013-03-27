@@ -91,7 +91,7 @@ SharedData* shared;
 /*
  PANER.C
 */
-void cleanup( char* );
+void cleanup();
 void client( char*, int );
 void cashier( char*, int );
 void server( char* );
@@ -119,6 +119,7 @@ char* toString( char*, int );
 void signalHandler( int );
 int installSignalHandler();
 void writeToFile( char*, char* );
+void emptyFile( char* );
 
 /* 
  SEMS.C 

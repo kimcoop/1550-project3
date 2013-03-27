@@ -44,12 +44,16 @@ int main( int argc, char *argv[] ) {
   
   int shmid, i;
   if ( argc-1 == 0 ) {
-    println( "Usage: ./cleanup <shmid1> <shmid2> ..." );
+    println( "Cleanup usage: ");
+    println( "./cleanup <shmid1> <shmid2> ..." );
+    println( "Or to scrape shmids from %s, run: ", CLEANUP_FILE );
+    println( "./cleanup all" );
   } else {
 
-    if ( argc-1 == 1 && strEqual( argv[1], "all" )) {
+    if ( (argc-1 == 1) && strEqual( argv[1], "all" ) ) {
       println( "Cleaning up semaphores listed in file %s ", CLEANUP_FILE );
       cleanupShmids( CLEANUP_FILE ); // clean up from file
+      emptyFile( CLEANUP_FILE ); // clear file
     } else {
 
       for ( i = 1; i <= argc-1; i++ ) { // clean up via command line args
