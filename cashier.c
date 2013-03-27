@@ -10,7 +10,6 @@ Due March 28, 2013
 void printValues();
 void signalClient();
 void serviceClient();
-void takeBreak();
 */
 
 #include  "my_header.h"
@@ -21,12 +20,12 @@ int service_time = SERVICE_TIME,
     cashier_id;
 
 void printValues() {
-  println("----");
+  println( "----" );
   println( "max time cashier takes to service client: %i", service_time );
   println( "max time cashier spends in break: %i", break_time );
   println( "shared memory segment ID: %i", shared_id );
-  println("----");
-  println("");
+  println( "----" );
+  println( "" );
 }
 
 void signalClient() {
@@ -38,11 +37,6 @@ void serviceClient() {
   sem_wait( &shared->client_ready_for_service );
   println("(CASHIER) client_ready_for_service ");
   sleep( service_time );
-}
-
-void takeBreak() {
-  sleep( break_time );
-  println("(CASHIER) taking break ");
 }
 
 int main( int argc, char *argv[] ) {
@@ -77,10 +71,17 @@ int main( int argc, char *argv[] ) {
 
   int i = 0;
   do {
+
+    while ( empty( &shared->waiting_queue ) ) {
+      sleep( break_time );
+      println( "CASHIER %d taking break ", cashier_id );
+    }
+
     signalClient();
     serviceClient();
-    takeBreak();
+    
     i++;
+
   } while ( i < MAX_NUM_CLIENTS && OPERATE );
 
   println("( CASHIER )  detachSharedMem " );
