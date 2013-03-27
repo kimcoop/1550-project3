@@ -14,7 +14,7 @@
 #define SMALL_BUFFER 12
 #define TRUE 1
 #define FALSE 0
-#define KEY "kimcoope"
+#define KEY "/dev/null"
 #define KEY_MODE 'R'
 #define OUTPUT_FILE "output.txt"
 #define CLEANUP_FILE "shmids.txt"
@@ -125,8 +125,8 @@ int 		allocateSharedMem( key_t );
 SharedData*	  attachSharedMem( int );
 void 		detachSharedMem( SharedData* );
 void 		removeSharedMem( int );
-void 		openSem( sem_t*, char*,  int );
-void 		openSems( int );
+void openSem( sem_t*, char* );
+void openSems();
 void		closeSem( sem_t*, char* );
 void 		destroySems();
 

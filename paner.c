@@ -152,15 +152,13 @@ int main( int argc, char *argv[] ) {
   int parent_id = getpid(); // gather while we know we are parent (only) process
   setbuf( stdout, NULL ); // stdout is unbuffered
   
-  int initialize = TRUE;
-  openSems( initialize );
+  openSems();
   initSharedMem();
   initSharedData();
 
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
-
 
   println( "[ PARENT ] shared->total_clients_served = %d", shared->total_clients_served);
   println( "[ PARENT ] shared->num_queued = %d", shared->num_queued);

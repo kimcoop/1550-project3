@@ -5,8 +5,8 @@
 	void detachSharedMem( SharedData* );
 	void removeSharedMem( int );
 
-  void openSem( sem_t*, char*, int );
-  void openSems( int );
+  void openSem( sem_t*, char* );
+  void openSems();
   void closeSem( sem_t*, char* );
   void destroySems();
 
@@ -18,7 +18,7 @@ int allocateSharedMem( key_t key ) {
 	int shmid;
 
   //TODO use key
-  if ( ( shmid = shmget( key, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
+  if ( ( shmid = shmget( IPC_PRIVATE, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
     perror("shmget");
     return -1;
   } else {
@@ -48,7 +48,7 @@ void detachSharedMem( SharedData* data ) {
 }
 
 void removeSharedMem( int shmid ) {
-	println("removeSharedMem %d",shmid);
+	
 	if ( shmctl( shmid, IPC_RMID, NULL ) == -1 ) {
     perror("shmtcl");
   }
@@ -59,53 +59,43 @@ void removeSharedMem( int shmid ) {
   SEMAPHORES
 */
 
-void openSem( sem_t *semaphore, char* name, int initialize ) { 
-  // initialize is a boolean indicating initialize sem (parent process) or open preexisting (other processes)
-  if ( initialize ) {
-    if (( semaphore = sem_open( name, O_CREAT, 0644, 0 )) == SEM_FAILED ) {
-      perror( "sem_open" );
-      exit( EXIT_FAILURE );
-    }
-  } else {
-    if (( semaphore = sem_open( name, 0644, 0 )) == SEM_FAILED ) {
-      perror( "sem_open" );
-      exit( EXIT_FAILURE );
-    }
+void openSem( sem_t *semaphore, char* name  ) { 
+  //  initialize sem (parent process) or open preexisting (other processes)
+  if (( semaphore = sem_open( name, O_CREAT, 0644, 0 )) == SEM_FAILED ) {
+    perror( "sem_open" );
+    exit( EXIT_FAILURE );
   }
+
 }
 
-void openSems( int initialize ) {
-  openSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex", initialize );
-  openSem( &shared->order_queue_mutex, "/order_queue_mutex", initialize );
-  println("Here3");
-  openSem( &shared->new_order, "/new_order", initialize );
-  openSem( &shared->client_exit_mutex, "/client_exit_mutex", initialize );
-  openSem( &shared->server_dispatch_ready, "/server_dispatch_ready", initialize );
-  println("Here");
-  openSem( &shared->cashier_ready, "/cashier_ready", initialize );
-  println("Here2");
-  openSem( &shared->menu_items_mutex, "/menu_items_mutex", initialize );
-  println("Here3");
-  openSem( &shared->client_ready_for_service, "/client_ready_for_service", initialize );
+void openSems() {
+  openSem( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
+  openSem( &shared->order_queue_mutex, "/order_queue_mutex" );
+  openSem( &shared->new_order, "/new_order" );
+  openSem( &shared->client_exit_mutex, "/client_exit_mutex" );
+  openSem( &shared->server_dispatch_ready, "/server_dispatch_ready" );
+  openSem( &shared->cashier_ready, "/cashier_ready" );
+  openSem( &shared->menu_items_mutex, "/menu_items_mutex" );
+  openSem( &shared->client_ready_for_service, "/client_ready_for_service" );
 
 
   int i;
-  for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
+  for ( i=0; i < MAX_NUM_CLIENTS; i++ ) {
     char sem_name[ SMALL_BUFFER ];
     toString( sem_name, i );
-    openSem( &shared->order_up[i], sem_name, initialize );
+    openSem( &shared->order_up[i], sem_name );
   }
 
 }
 
 void closeSem( sem_t *semaphore, char* name ) {
+  if ( sem_close( semaphore ) == -1 ) {
+    perror( "sem_close ");
+    exit( EXIT_FAILURE );
+  }
 
   if ( sem_unlink( name  ) == -1 ) {
     perror( "sem_unlink ");
-    exit( EXIT_FAILURE );
-  }
-  if ( sem_close( semaphore ) == -1 ) {
-    perror( "sem_close ");
     exit( EXIT_FAILURE );
   }
 
@@ -124,7 +114,7 @@ void destroySems() {
 
 
   int i;
-  for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
+  for ( i=0; i < MAX_NUM_CLIENTS; i++ ) {
     char sem_name[ SMALL_BUFFER ];
     toString( sem_name, i );
     closeSem( &shared->order_up[i], sem_name );
