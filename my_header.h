@@ -18,6 +18,7 @@
 #define KEY "/dev/null"
 #define KEY_MODE 'R'
 #define OUTPUT_FILE "output.txt"
+#define DB_FILE "orders.txt"
 #define CLEANUP_FILE "shmids.txt"
 #define INITIAL_QUEUE_SIZE 10
 #define QUEUE_SIZE 1000
@@ -81,6 +82,7 @@ typedef struct {
  	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t client_exit_mutex;
  	sem_t menu_items_mutex;
+ 	sem_t db_mutex; // dumping order to file
 
  } SharedData;
 
@@ -89,7 +91,6 @@ SharedData* shared;
 /*
  PANER.C
 */
-void endDay();
 void cleanup( char* );
 void client( char*, int );
 void cashier( char*, int );

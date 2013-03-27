@@ -56,9 +56,8 @@ void arrive() {
 }
 
 void order() {
-  // consists of a single item.
-  // client proceeds to waiting queue.
-  // TODO - item_id persists
+  // consists of a single item. client then proceeds to order queue.
+
   sem_wait( &shared->cashier_ready );
   sem_post( &shared->client_ready_for_service );
   sleep( 1 ); // service time
@@ -74,9 +73,12 @@ void order() {
 
 void storeOrder() {
 
-  char str[ MEDIUM_BUFFER ] = "Client is ordering ";
-  strncat( str, "test\n", SMALL_BUFFER );
-  writeToFile( OUTPUT_FILE, str );
+  sem_wait( &shared->db_mutex );
+  FILE *file = fopen( DB_FILE, "ab+" );
+  fprintf( file, "Client %d ordered item %d (%s, $%.2f)", client_id, item_id, getDescription( item_id ), getPrice( item_id ) );
+  fprintf( file, "\n" );
+  fclose( file );
+  sem_post( &shared->db_mutex );
 
   sem_wait( &shared->menu_items_mutex );
   shared->freq_menu_items[ item_id-1 ]++;

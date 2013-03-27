@@ -4,27 +4,60 @@ KAC162@pitt.edu
 CS1550
 Project 3
 Due March 28, 2013
+
 */
 
 #include  "my_header.h"
 
-int main( int argc, char *argv[] ) { // TODO: parse SHMIDS.TXT and iteratively cleanup
+void cleanupShmids( char* );
+void cleanupShmid( int );
+
+
+void cleanupShmids( char* filename ) {
+
+  int shmid;
+  char c;
+  FILE  *fp = NULL;
+
+  if (( fp = fopen( filename, "r" )) == NULL ) {
+    println( "Unknown file %s", filename );
+    exit( 1 );
+  } else {
+    while ( !feof(fp)  ) {
+      fscanf( fp, "%d", &shmid );
+      fscanf( fp, "%c", &c ); //newline
+      cleanupShmid( shmid );
+    } // end while 
+    fclose(fp);
+  }
+}
+
+void cleanupShmid( int shmid ) {
+  println( "Cleaning up shmid: %d", shmid );
+  shared = attachSharedMem( shmid );
+  destroySems();
+  detachSharedMem( shared );
+  removeSharedMem( shmid );
+}
+
+int main( int argc, char *argv[] ) {
   
   int shmid, i;
   if ( argc-1 == 0 ) {
     println( "Usage: ./cleanup <shmid1> <shmid2> ..." );
   } else {
-    for ( i = 1; i <= argc-1; i++ ) {
-      shmid = atoi( argv[ i ] );
-      println( "Cleaning up shmid: %d", shmid );
-      shared = attachSharedMem( shmid );
-      destroySems();
-      detachSharedMem( shared );
-      removeSharedMem( shmid );
+
+    if ( argc-1 == 1 && strEqual( argv[1], "all" )) {
+      println( "Cleaning up semaphores listed in file %s ", CLEANUP_FILE );
+      cleanupShmids( CLEANUP_FILE ); // clean up from file
+    } else {
+
+      for ( i = 1; i <= argc-1; i++ ) { // clean up via command line args
+        shmid = atoi( argv[ i ] );
+        cleanupShmid( shmid );
+      }
+      
     }
-
   }
-
   return 0;
- 
 }

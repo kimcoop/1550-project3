@@ -67,6 +67,7 @@ void initSems() {
   sem_init( &shared->cashier_ready, 0, 1 );
   sem_init( &shared->menu_items_mutex, 0, 1 );
   sem_init( &shared->client_ready_for_service, 0, 1 );
+  sem_init( &shared->db_mutex, 0, 1 );
   ;
 
   int i;
@@ -87,6 +88,7 @@ void destroySems() {
   sem_destroy( &shared->cashier_ready );
   sem_destroy( &shared->menu_items_mutex );
   sem_destroy( &shared->client_ready_for_service );
+  sem_destroy( &shared->db_mutex );
   
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

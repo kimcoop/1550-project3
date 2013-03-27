@@ -39,6 +39,6 @@ void writeToFile( char* filename, char* str ) {
   FILE *file = fopen( filename, "ab+" ); // append file (add text to a file or create a file if it does not exist)
   println(" writeToFile: %s", str );
   fprintf( file, "%s ", str ); // write
-  // if ( DEBUG ) fprintf( file, "\n" ); // enable this when want to parse by line
+  fprintf( file, "\n" );
   fclose( file );
 }

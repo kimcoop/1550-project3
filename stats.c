@@ -47,16 +47,26 @@ int totalClients() {
 
 void printStats() {
 
-	println(" Frequencies of items ordered:  ");
-	int i;
-	for ( i=0; i < NUM_MENU_ITEMS; i++ ) {
-		printf( "(%d: %d)  ", i, shared->freq_menu_items[ i-1 ]);
+	printf( "\n" );
+	printf( "ItemID \t | \tTimes Ordered \t| \tRevenue \t| \tDescription \t\n" );
+	printf( "----------------\n" );
+	printf( "\n" );
+	int i, freq;
+	float revenue;
+	for ( i=1; i <= NUM_MENU_ITEMS; i++ ) {
+		revenue = itemRevenue( i );
+		freq = shared->freq_menu_items[ i-1 ];
+		printf( "%d \t  ", i); // item_id
+		printf( "%d \t  ", freq); // times ordered
+		printf( "$%.2f \t  ", revenue); // revenue for item
+		printf( "%s \t  ", getDescription( i ) ); // description
+		printf( "\n" );
 	}
-	println( "" );
-	println( "-------" );
-	println( "Total revenue: %.2f", totalRevenue() );
-	println( "Total clients served: %d", totalClients() );
-	println( "-------" );
+	printf( "\n" );
+	printf( "-------\n");
+	printf( "Total revenue: $%.2f\n", totalRevenue() );
+	printf( "Total clients served: %d\n", totalClients() );
+	printf( "-------\n");
 
 }
 

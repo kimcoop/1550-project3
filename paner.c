@@ -7,7 +7,6 @@ Due March 28, 2013
 */
 
 /*
-void endDay();
 void cleanup( char* );
 void client( char*, int );
 void cashier( char*, int );
@@ -23,8 +22,6 @@ void initSharedMem();
 key_t key;
 int shmid, num_clients, num_cashiers;
 
-void endDay() {
-}
 
 void cleanup( char* shmid_str ) {
   if ( execl( "./cleanup",  "cleanup", shmid_str, (char*)0 ) == -1 ) {
