@@ -17,7 +17,8 @@ void serviceClient();
 int service_time = SERVICE_TIME, 
     break_time = BREAK_TIME, 
     shared_id = SHARED_ID,
-    cashier_id;
+    cashier_id, 
+    client_id;
 
 void printValues() {
   println( "----" );
@@ -28,15 +29,39 @@ void printValues() {
   println( "" );
 }
 
-void signalClient() {
-  sem_post( &shared->cashier_ready );
-  println("(CASHIER) shared->cashier_ready ");
+void signalClient() { 
+  
+  sem_wait( &shared->waiting_queue_mutex );
+  client_id = dequeue( &shared->waiting_queue );
+  sem_post( &shared->waiting_queue_mutex );
+
+  sem_post( &shared->signal_client[client_id] ); // signal client that cashier will take him
+
 }
 
 void serviceClient() {
-  sem_wait( &shared->client_ready_for_service );
-  println("(CASHIER) client_ready_for_service ");
+  sem_wait( &shared->client_ready_to_order );
+  println("(CASHIER %d) received client_ready_to_order ", cashier_id);
   sleep( service_time );
+
+  sem_wait( &shared->orders_mutex );
+  int item_id = shared->orders[ client_id ];
+  println("(CASHIER %d) received client %d order: item_id %d", cashier_id, client_id, item_id );
+  sem_post( &shared->orders_mutex );
+
+  // log client's order in system
+  sem_wait( &shared->db_mutex );
+  FILE *fp = fopen( DB_FILE, "ab+" );
+  fprintf( fp, DB_PRINT_FORMAT, client_id, item_id, getDescription( item_id ), getPrice( item_id ) );
+  fprintf( fp, "\n" );
+  fclose( fp );
+  sem_post( &shared->db_mutex );
+
+  // log stats for client's order
+  sem_wait( &shared->menu_items_mutex );
+  shared->freq_menu_items[ item_id-1 ]++;
+  sem_post( &shared->menu_items_mutex );
+  
 }
 
 int main( int argc, char *argv[] ) {
@@ -72,7 +97,7 @@ int main( int argc, char *argv[] ) {
   int i = 0;
   do {
 
-    while ( empty( &shared->waiting_queue ) ) {
+    if ( empty( &shared->waiting_queue ) ) {
       sleep( break_time );
       println( "CASHIER %d taking break ", cashier_id );
     }

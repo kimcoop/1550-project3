@@ -11,6 +11,7 @@ Due March 28, 2013
 
 
 void arrive();
+waitForCashier();
 void order();
 void storeOrder();
 void pay();
@@ -48,41 +49,30 @@ void arrive() {
     enqueue( &shared->waiting_queue, client_id ); // waiting to place order
     shared->num_queued++;
 
-    println("[CLIENT] shared->num_queued = %d", shared->num_queued);
+    println("[CLIENT %d ] shared->num_queued = %d", client_id, shared->num_queued);
     sem_post( &shared->waiting_queue_mutex );
 
   }
 
 }
 
+void waitForCashier() {
+
+  println("[CLIENT %d] waitForCashier ", client_id);
+  sem_wait( &shared->signal_client[client_id] );
+  sem_post( &shared->client_ready_to_order );
+  
+}
+
 void order() {
   // consists of a single item. client then proceeds to order queue.
 
-  sem_wait( &shared->cashier_ready );
-  sem_post( &shared->client_ready_for_service );
   sleep( 1 ); // service time
 
-  println("[CLIENT] %d ordering item_id %d", client_id, item_id );
-
-  storeOrder();
-
-  sem_wait( &shared->waiting_queue_mutex );
-  dequeue( &shared->waiting_queue ); // returns client_id
-  sem_post( &shared->waiting_queue_mutex );
-}
-
-void storeOrder() {
-
-  sem_wait( &shared->db_mutex );
-  FILE *fp = fopen( DB_FILE, "ab+" );
-  fprintf( fp, "Client %d ordered item %d (%s, $%.2f)", client_id, item_id, getDescription( item_id ), getPrice( item_id ) );
-  fprintf( fp, "\n" );
-  fclose( fp );
-  sem_post( &shared->db_mutex );
-
-  sem_wait( &shared->menu_items_mutex );
-  shared->freq_menu_items[ item_id-1 ]++;
-  sem_post( &shared->menu_items_mutex );
+  sem_wait( &shared->orders_mutex );
+  println("[CLIENT %d] ordering item_id %d", client_id, item_id );
+  shared->orders[ client_id ] = item_id;
+  sem_post( &shared->orders_mutex );
 
 }
 
@@ -92,10 +82,8 @@ void pay() {
   enqueue( &shared->order_queue, client_id );
   sem_post( &shared->order_queue_mutex );
   
-  println("[CLIENT] %d paying", client_id );
-  // sem_post( &shared->cashier_free );
+  println("[CLIENT %d] paying", client_id );
 
-  // sem_post( &shared->new_order );
 }
 
 
@@ -107,7 +95,7 @@ void waitForFood() {
   
   // sleep( wait_time );
   sleep( 1 );
-  sem_wait( &shared->order_up[client_id] );
+  sem_wait( &shared->signal_client[client_id] );
 
 }
 
@@ -128,7 +116,7 @@ void getFood() {
 
 void eat() {
   //
-  println("[CLIENT] %d eating", client_id );
+  println("[CLIENT %d] eating", client_id );
   sleep( eat_time );
 
 }
@@ -136,10 +124,10 @@ void eat() {
 void leave() {
   //
   sem_wait( &shared->client_exit_mutex );
-  println("[CLIENT] %d leaving ", client_id );
+  println("[CLIENT %d] leaving ", client_id );
   shared->num_exited++;
 
-  println("[CLIENT] shared->num_exited %d ", shared->num_exited);
+  println("[CLIENT %d] shared->num_exited %d ", client_id, shared->num_exited);
   sem_post( &shared->client_exit_mutex );
 
 }
@@ -198,11 +186,12 @@ int main( int argc, char *argv[] ) {
   
   shared = attachSharedMem( shared_id );
 
-  if (sem_wait( &shared->cashier_ready ) == -1) {
-    perror( "sem_wait ");
-  }
+  // if (sem_wait( &shared->cashier_ready ) == -1) {
+  //   perror( "sem_wait ");
+  // }
 
   arrive();
+  waitForCashier();
   order();
   pay();
   waitForFood();

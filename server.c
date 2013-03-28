@@ -38,7 +38,7 @@ void prepareFood() {
     client_id = peek( &shared->order_queue );
     println("{ SERVER } prepareFood for client_id %d", client_id );
     println("{ SERVER } order_up[ %d ]", client_id );
-    sem_post( &shared->order_up[client_id] );
+    sem_post( &shared->signal_client[client_id] );
   } else {
     println("ORDER QUEUE EMPTY");
   }

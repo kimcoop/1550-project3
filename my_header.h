@@ -25,6 +25,9 @@
 #define SLEEP_TIME 20
 #define CLIENT_BATCH_SIZE 1
 #define MAX_NUM_CLIENTS 3
+#define DB_PRINT_FORMAT "Client %d ordered item %d (%s, $%.2f)"
+
+
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -71,13 +74,14 @@ typedef struct {
  	Queue waiting_queue; // clients first arrive here
  	Queue order_queue; // clients move here after placing order
 
+ 	int orders[MAX_NUM_CLIENTS]; // track client orders ( indexed by client_id )
  	int freq_menu_items[NUM_MENU_ITEMS]; // track top (5) most popular menu items & how much each has generated
- 	sem_t order_up[MAX_NUM_CLIENTS]; // food ready for client
+ 	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
 
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
- 	sem_t cashier_ready; // signal client cashier is available
- 	sem_t client_ready_for_service; // signal cashier when client is at register
+ 	sem_t orders_mutex;
+ 	sem_t client_ready_to_order; // signal cashier when client is at register
  	sem_t new_order; // alert the server to new order
  	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t client_exit_mutex;
@@ -104,6 +108,7 @@ void initSharedMem();
  CLIENT.C
 */
 void arrive();
+void waitForCashier();
 void order();
 void storeOrder();
 void pay();

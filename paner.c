@@ -109,6 +109,10 @@ void initSharedData() {
   shared->num_in_store = 0;
   init_queue( &shared->waiting_queue );
   init_queue( &shared->order_queue );
+
+  int i;
+  for ( i=0; i < MAX_NUM_CLIENTS; i++ )
+    shared->orders[ i ] = -1; // default each order to -1
 }
 
 void initSharedMem() {

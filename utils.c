@@ -16,10 +16,10 @@ char* toString( char* str, int i ) {
 }
 
 void signalHandler( int sig ) {
-  println( "Interactive attention signal caught." );
+
   signal( sig, SIG_IGN );
   char c;
-  printf( "Do you really want to quit? (y/n): ");
+  printf( "\n\nDo you really want to quit? (y/n): ");
   c = getchar();
   if ( c == 'y' || c == 'Y' ) {
   	println( "Goodbye!" );
