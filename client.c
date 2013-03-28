@@ -58,16 +58,16 @@ void arrive() {
 
 void waitForCashier() {
 
-  println("[CLIENT %d] waitForCashier ", client_id);
+  println("[CLIENT %d] waiting for cashier to signal ", client_id);
   sem_wait( &shared->signal_client[client_id] );
+  println("[CLIENT %d] received cashier signal ", client_id);
   sem_post( &shared->client_ready_to_order );
+  println("[CLIENT %d] posted ready to order ", client_id);
   
 }
 
 void order() {
-  // consists of a single item. client then proceeds to order queue.
-
-  sleep( 1 ); // service time
+  // consists of a single item. client then proceeds to order queue
 
   sem_wait( &shared->orders_mutex );
   println("[CLIENT %d] ordering item_id %d", client_id, item_id );
@@ -77,7 +77,10 @@ void order() {
 }
 
 void pay() {
-  //
+  
+  println("[CLIENT %d] waiting for cashier_order_placed ", client_id );
+  sem_wait( &shared->cashier_order_placed );
+  println("[CLIENT %d] received cashier_order_placed ", client_id );
   sem_wait( &shared->order_queue_mutex );
   enqueue( &shared->order_queue, client_id );
   sem_post( &shared->order_queue_mutex );
@@ -91,14 +94,14 @@ void waitForFood() {
   // wait pseudo-random amount of time between rand(min) and rand(max) for item_id
   
   int wait_time = getWaitTime( item_id );
-  println("[CLIENT] %d waiting for food ", client_id );
+  println("[CLIENT %d] waiting for food ", client_id );
   
   #ifdef DEBUG
     sleep( 1 );
   #else
     sleep( wait_time );
   #endif
-    
+
   sem_wait( &shared->signal_client[client_id] );
 
 }

@@ -6,11 +6,12 @@ Project 3
 Due March 28, 2013
 */
 
-/*
+
 void printValues();
 void signalClient();
 void serviceClient();
-*/
+void logOrder();
+
 
 #include  "my_header.h"
 
@@ -40,6 +41,8 @@ void signalClient() {
 }
 
 void serviceClient() {
+
+  // wait for called client to come to register
   sem_wait( &shared->client_ready_to_order );
   println("(CASHIER %d) received client_ready_to_order ", cashier_id);
   sleep( service_time );
@@ -57,11 +60,21 @@ void serviceClient() {
   fclose( fp );
   sem_post( &shared->db_mutex );
 
+   // signal client the order went through
+  sem_post( &shared->cashier_order_placed );
+
+  logOrder();
+
+  // signal to server that there is a new order to be filled
+  sem_post( &shared->new_order ); 
+
+}
+
+void logOrder( item_id ) {
   // log stats for client's order
   sem_wait( &shared->menu_items_mutex );
   shared->freq_menu_items[ item_id-1 ]++;
   sem_post( &shared->menu_items_mutex );
-  
 }
 
 int main( int argc, char *argv[] ) {
@@ -97,7 +110,7 @@ int main( int argc, char *argv[] ) {
   int i = 0;
   do {
 
-    if ( empty( &shared->waiting_queue ) ) {
+    while ( empty( &shared->waiting_queue ) ) {
       sleep( break_time );
       println( "CASHIER %d taking break ", cashier_id );
     }
@@ -107,7 +120,7 @@ int main( int argc, char *argv[] ) {
     
     i++;
 
-  } while ( i < MAX_NUM_CLIENTS && OPERATE );
+  } while ( OPERATE );
 
   println("( CASHIER )  detachSharedMem " );
   detachSharedMem( shared );

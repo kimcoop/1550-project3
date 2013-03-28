@@ -154,9 +154,8 @@ int main( int argc, char *argv[] ) {
   int parent_id = getpid(); // gather while we know we are parent (only) process
   setbuf( stdout, NULL ); // stdout is unbuffered
 
-  
-  initSems();
   initSharedMem();
+  initSems();
   initSharedData();
 
   char shmid_str[ SMALL_BUFFER ];

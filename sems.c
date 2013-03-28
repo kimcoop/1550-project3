@@ -17,7 +17,7 @@ int allocateSharedMem( key_t key ) {
 	int shmid;
 
   //TODO use key
-  if ( ( shmid = shmget( IPC_PRIVATE, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
+  if ( ( shmid = shmget( key, sizeof( SharedData ), IPC_CREAT | 0660 )) == -1 ) { 
     perror("shmget");
     return -1;
   } else {
@@ -61,13 +61,14 @@ void removeSharedMem( int shmid ) {
 void initSems() {
   sem_init( &shared->waiting_queue_mutex, 0, 1 );
   sem_init( &shared->order_queue_mutex, 0, 1 );
-  sem_init( &shared->new_order, 0, 1 );
-  sem_init( &shared->client_exit_mutex, 0, 1 );
-  sem_init( &shared->server_dispatch_ready, 0, 1 );
-  sem_init( &shared->menu_items_mutex, 0, 1 );
   sem_init( &shared->db_mutex, 0, 1 );
+  sem_init( &shared->client_exit_mutex, 0, 1 );
+  sem_init( &shared->menu_items_mutex, 0, 1 );
   sem_init( &shared->orders_mutex, 0, 1 );
-  ;
+
+  sem_init( &shared->new_order, 0, 0 );
+  sem_init( &shared->cashier_order_placed, 0, 0 );
+  sem_init( &shared->server_dispatch_ready, 0, 1 );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
@@ -79,14 +80,16 @@ void initSems() {
 void destroySems() {
 
   println( "Destroying sempahores." );
-  sem_destroy( &shared->waiting_queue_mutex );
-  sem_destroy( &shared->order_queue_mutex );
-  sem_destroy( &shared->new_order );
-  sem_destroy( &shared->client_exit_mutex );
-  sem_destroy( &shared->server_dispatch_ready );
   sem_destroy( &shared->menu_items_mutex );
   sem_destroy( &shared->db_mutex );
   sem_destroy( &shared->orders_mutex );
+  sem_destroy( &shared->waiting_queue_mutex );
+  sem_destroy( &shared->order_queue_mutex );
+  sem_destroy( &shared->client_exit_mutex );
+  
+  sem_destroy( &shared->new_order );
+  sem_destroy( &shared->cashier_order_placed );
+  sem_destroy( &shared->server_dispatch_ready );
   
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

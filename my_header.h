@@ -83,6 +83,7 @@ typedef struct {
  	sem_t orders_mutex;
  	sem_t client_ready_to_order; // signal cashier when client is at register
  	sem_t new_order; // alert the server to new order
+ 	sem_t cashier_order_placed; // signal client that order was successful
  	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t client_exit_mutex;
  	sem_t menu_items_mutex;

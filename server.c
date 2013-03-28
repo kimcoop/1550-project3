@@ -31,7 +31,7 @@ void printValues() {
 void prepareFood() {
 
   sem_wait( &shared->new_order );
-  println("{ SERVER! } new_order");
+  println("{ SERVER } new_order");
   sem_wait( &shared->order_queue_mutex );
 
   if ( !empty( &shared->order_queue ) ) {
@@ -48,6 +48,13 @@ void prepareFood() {
 }
 
 void serveFood() {
+
+  #ifdef DEBUG
+    sleep( 1 );
+  #else
+    sleep( service_time );
+  #endif
+
   sem_post( &shared->server_dispatch_ready );
   println("{ SERVER } server_dispatch_ready");
 }
@@ -77,12 +84,12 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
 
-  int i = 0;
+  // int i = 0;
   do {
     prepareFood();
     serveFood();
-    i++;
-  } while ( i < MAX_NUM_CLIENTS && OPERATE );
+    // i++;
+  } while ( OPERATE );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );
