@@ -41,24 +41,23 @@ void signalClient() {
   sem_post( &shared->waiting_queue_mutex );
   println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
 
-  sem_post( &shared->signal_client[client_id] ); // signal client that cashier will take him
-  sem_post( &shared->cashier_ready );
-  println("(CASHIER %d) signal_client %d cashier is ready", cashier_id, client_id );
+  // signal client that cashier will take him
+  sem_post( &shared->cashier );
+  println("(CASHIER %d) posted cashier is ready", cashier_id );
 
 }
 
 void serviceClient() {
 
-  println("(CASHIER %d) waiting client_ready_to_order ", cashier_id);
-  // wait for called client to come to register
-  sem_wait( &shared->signal_client[ client_id ] );
-  sem_wait( &shared->client_ready_to_order );
-  println("(CASHIER %d) received client_ready_to_order from client %d ", cashier_id, client_id );
+  println("(CASHIER %d) waiting order placed ", cashier_id, client_id );
+  sem_wait( &shared->ordered );
+  println("(CASHIER %d) recvd order placed ", cashier_id, client_id );
   #ifdef DEBUG
     sleep( 1 );
   #else
     sleep( service_time );
   #endif
+
 
   println("(CASHIER %d) waiting orders_mutex", cashier_id);
   sem_wait( &shared->orders_mutex );
@@ -81,15 +80,19 @@ void serviceClient() {
   sem_post( &shared->order_queue_mutex );
 
    // signal client the order went through
-  println("(CASHIER %d) posting signal_client for order placed ", cashier_id);
-  sem_post( &shared->signal_client[ client_id ] );
+  println("(CASHIER %d) posting order placed ", cashier_id );
   sem_post( &shared->cashier_order_placed );
 
+  println("(CASHIER %d) waiting payment ", cashier_id );
+  sem_wait( &shared->payment );
+  println("(CASHIER %d) recvd payment ", cashier_id );
 
+  println("(CASHIER %d) posting receipt ", cashier_id );
+  sem_post( &shared->receipt );
   logOrder();
 
+
   // signal to server that there is a new order to be filled
-  
   println("(CASHIER %d) posting new_order for server", cashier_id);
   sem_post( &shared->new_order ); 
 
@@ -97,7 +100,7 @@ void serviceClient() {
 
 void logOrder( item_id ) {
   // log stats for client's order
-  println("(CASHIER %d) waiting menu_items_mutex", cashier_id );
+  println("(CASHIER %d) waiting menu_items_mutex to log order", cashier_id );
   sem_wait( &shared->menu_items_mutex );
   shared->freq_menu_items[ item_id-1 ]++;
   sem_post( &shared->menu_items_mutex );

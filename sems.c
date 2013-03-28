@@ -67,9 +67,13 @@ void initSems() {
   sem_init( &shared->menu_items_mutex, 0, 1 );
   sem_init( &shared->orders_mutex, 0, 1 );
 
+  sem_init( &shared->cashier, 0, 0 );
+  sem_init( &shared->client_ready_to_order, 0, 0 );
+  sem_init( &shared->payment, 0, 0 );
+  sem_init( &shared->receipt, 0, 0 );
   sem_init( &shared->new_order, 0, 0 );
   sem_init( &shared->server_dispatch_ready, 0, 0 );
-  sem_init( &shared->cashier_ready, 0, 0 );
+  sem_init( &shared->ordered, 0, 0 );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
@@ -84,13 +88,17 @@ void destroySems() {
   sem_destroy( &shared->menu_items_mutex );
   sem_destroy( &shared->db_mutex );
   sem_destroy( &shared->orders_mutex );
+  sem_destroy( &shared->client_ready_to_order );
+  sem_destroy( &shared->payment );
+  sem_destroy( &shared->receipt );
   sem_destroy( &shared->waiting_queue_mutex );
   sem_destroy( &shared->order_queue_mutex );
   sem_destroy( &shared->client_exit_mutex );
   
   sem_destroy( &shared->new_order );
   sem_destroy( &shared->server_dispatch_ready );
-  sem_destroy( &shared->cashier_ready );
+  sem_destroy( &shared->cashier );
+  sem_destroy( &shared->ordered );
   
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

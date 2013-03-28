@@ -81,7 +81,8 @@ typedef struct {
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t orders_mutex;
- 	sem_t cashier_ready; // cashier is available
+ 	 // cashier interactions (placing order, paying, getting receipt)
+ 	sem_t cashier, ordered, payment, receipt;
  	sem_t client_ready_to_order; // signal cashier when client is at register
  	sem_t new_order; // alert the server to new order
  	sem_t cashier_order_placed; // signal client that order was successful

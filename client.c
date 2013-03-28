@@ -62,14 +62,9 @@ void arrive() {
 
 void waitForCashier() {
 
-  println("[CLIENT %d] waiting for cashier to signal ", client_id);
-  sem_wait( &shared->signal_client[client_id] );
-  sem_wait( &shared->cashier_ready );
-  println("[CLIENT %d] received cashier signal ", client_id);
-
-  sem_post( &shared->signal_client[ client_id ] );
-  sem_post( &shared->client_ready_to_order );
-  println("[CLIENT %d] posted ready to order ", client_id);
+  // println("[CLIENT %d] waiting for cashier to signal ", client_id);
+  // sem_wait( &shared->cashier );
+  // println("[CLIENT %d] received cashier signal ", client_id);
   
 }
 
@@ -83,16 +78,23 @@ void order() {
   sem_post( &shared->orders_mutex );
   println("[CLIENT %d] posting orders_mutex", client_id );
 
+  sem_post( &shared->ordered );
+
 }
 
 void pay() {
   
-  println("[CLIENT %d] waiting for cashier to signal order placed ", client_id );
-  sem_wait( &shared->signal_client[ client_id ] );
+  println("[CLIENT %d] waiting for cashier order placed ", client_id );
   sem_wait( &shared->cashier_order_placed );
-  println("[CLIENT %d] received cashier to signal order placed ", client_id );
+  println("[CLIENT %d] received cashier order placed ", client_id );
 
-  println("[CLIENT %d] paying", client_id );
+  println("[CLIENT %d] posting payment", client_id );
+  sem_post( &shared->payment );
+
+  println("[CLIENT %d] waiting receipt", client_id );
+  sem_wait( &shared->receipt );
+  println("[CLIENT %d] recvd receipt", client_id );
+
 
 }
 
@@ -208,7 +210,7 @@ int main( int argc, char *argv[] ) {
   
   shared = attachSharedMem( shared_id );
 
-  // if (sem_wait( &shared->cashier_ready ) == -1) {
+  // if (sem_wait( &shared->cashier ) == -1) {
   //   perror( "sem_wait ");
   // }
 
