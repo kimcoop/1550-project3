@@ -93,8 +93,12 @@ void waitForFood() {
   int wait_time = getWaitTime( item_id );
   println("[CLIENT] %d waiting for food ", client_id );
   
-  // sleep( wait_time );
-  sleep( 1 );
+  #ifdef DEBUG
+    sleep( 1 );
+  #else
+    sleep( wait_time );
+  #endif
+    
   sem_wait( &shared->signal_client[client_id] );
 
 }

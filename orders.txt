@@ -1,1 +1,1 @@
-Client 0 ordered item 11 (Argentine-Asado-Club, $11.75)
+Client 0 ordered item 4 (Steak-Blue-Cheese, $7.25)

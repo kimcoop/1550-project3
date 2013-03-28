@@ -48,7 +48,7 @@ int totalClients() {
 void printStats() {
 
 	printf( "\n" );
-	printf( "ItemID \t | \tTimes Ordered \t| \tRevenue \t| \tDescription \t\n" );
+	printf( "  ItemID  | Times Ordered |  Revenue  |  Description\n" );
 	printf( "-----------------------------------------------------------------------------------\n" );
 	printf( "\n" );
 	int i, freq;
@@ -56,7 +56,7 @@ void printStats() {
 	for ( i=1; i <= NUM_MENU_ITEMS; i++ ) {
 		revenue = itemRevenue( i );
 		freq = shared->freq_menu_items[ i-1 ];
-		printf( "%d \t  ", i); // item_id
+		printf( "\t%d \t  ", i); // item_id
 		printf( "%d \t  ", freq); // times ordered
 		printf( "$%.2f \t  ", revenue); // revenue for item
 		printf( "%s \t  ", getDescription( i ) ); // description
