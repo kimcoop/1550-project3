@@ -32,24 +32,32 @@ void printValues() {
 
 void signalClient() { 
   
+  println("(CASHIER %d) waiting waiting_queue_mutex", cashier_id);
+
   sem_wait( &shared->waiting_queue_mutex );
-  client_id = dequeue( &shared->waiting_queue );
+  println("(CASHIER %d) recvd waiting_queue_mutex", cashier_id);
+  client_id = dequeue( &shared->waiting_queue ); // signal to first client in queue
+  shared->num_queued--;
   sem_post( &shared->waiting_queue_mutex );
+  println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
 
   sem_post( &shared->signal_client[client_id] ); // signal client that cashier will take him
+  println("(CASHIER %d) signal_client cashier is ready", cashier_id);
 
 }
 
 void serviceClient() {
 
+  println("(CASHIER %d) waiting client_ready_to_order ", cashier_id);
   // wait for called client to come to register
   sem_wait( &shared->client_ready_to_order );
   println("(CASHIER %d) received client_ready_to_order ", cashier_id);
   sleep( service_time );
 
+  println("(CASHIER %d) waiting orders_mutex", cashier_id);
   sem_wait( &shared->orders_mutex );
   int item_id = shared->orders[ client_id ];
-  println("(CASHIER %d) received client %d order: item_id %d", cashier_id, client_id, item_id );
+  println("(CASHIER %d) recvd orders mutex. client %d order: item_id %d", cashier_id, client_id, item_id );
   sem_post( &shared->orders_mutex );
 
   // log client's order in system
@@ -61,17 +69,21 @@ void serviceClient() {
   sem_post( &shared->db_mutex );
 
    // signal client the order went through
-  sem_post( &shared->cashier_order_placed );
+  println("(CASHIER %d) posting signal_client for order placed ", cashier_id);
+  sem_post( &shared->signal_client[ client_id ] );
 
   logOrder();
 
   // signal to server that there is a new order to be filled
+  
+  println("(CASHIER %d) posting new_order for server", cashier_id);
   sem_post( &shared->new_order ); 
 
 }
 
 void logOrder( item_id ) {
   // log stats for client's order
+  println("(CASHIER %d) waiting menu_items_mutex", cashier_id );
   sem_wait( &shared->menu_items_mutex );
   shared->freq_menu_items[ item_id-1 ]++;
   sem_post( &shared->menu_items_mutex );
@@ -107,19 +119,22 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
 
-  int i = 0;
   do {
 
-    while ( empty( &shared->waiting_queue ) ) {
-      sleep( break_time );
+    println( "(if 0, cashier breaks) shared->num_queued = %d ", shared->num_queued );
+    while ( shared->num_queued == 0 ) {
+      #ifdef DEBUG
+        sleep( 1 );
+      #else
+        sleep( break_time );
+      #endif
       println( "CASHIER %d taking break ", cashier_id );
+      println( "(0?) shared->num_queued = %d ", shared->num_queued );
     }
 
     signalClient();
     serviceClient();
     
-    i++;
-
   } while ( OPERATE );
 
   println("( CASHIER )  detachSharedMem " );

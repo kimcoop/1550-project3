@@ -30,21 +30,25 @@ void printValues() {
 
 void prepareFood() {
 
+  println("{ SERVER } waiting new_order");
   sem_wait( &shared->new_order );
-  println("{ SERVER } new_order");
+  println("{ SERVER } received new_order");
+  
+  println("{ SERVER } waiting order_queue_mutex");
   sem_wait( &shared->order_queue_mutex );
+  println("{ SERVER } recvd order_queue_mutex");
 
   if ( !empty( &shared->order_queue ) ) {
     client_id = peek( &shared->order_queue );
     println("{ SERVER } prepareFood for client_id %d", client_id );
     println("{ SERVER } order_up[ %d ]", client_id );
-    sem_post( &shared->signal_client[client_id] );
+    sem_post( &shared->signal_client[ client_id ] );
   } else {
     println("ORDER QUEUE EMPTY");
   }
 
+  println("{ SERVER } post order_queue_mutex" );
   sem_post( &shared->order_queue_mutex );
-
 }
 
 void serveFood() {
@@ -55,8 +59,8 @@ void serveFood() {
     sleep( service_time );
   #endif
 
+  println("{ SERVER } posting server_dispatch_ready");
   sem_post( &shared->server_dispatch_ready );
-  println("{ SERVER } server_dispatch_ready");
 }
 
 int main( int argc, char *argv[] ) {
@@ -84,11 +88,9 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
 
-  // int i = 0;
   do {
     prepareFood();
     serveFood();
-    // i++;
   } while ( OPERATE );
 
   println("{ SERVER }  detachSharedMem " );

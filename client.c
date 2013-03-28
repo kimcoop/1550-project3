@@ -35,7 +35,7 @@ int client_id,
     shared_id = SHARED_ID;
 
 void arrive() {
-  println("[CLIENT] %d arrive ", client_id);
+  println("[CLIENT %d] arrive ", client_id);
   // line up in FIFO queue awaiting chance to give order.
   // if there are more than max_people already queued, client decides to leave with probability prob.
   if ( shared->num_queued >= max_people ) {
@@ -45,12 +45,16 @@ void arrive() {
   } else {
     // enter queue
 
+    println("[CLIENT %d] waiting waiting_queue_mutex ", client_id);
+
     sem_wait( &shared->waiting_queue_mutex );
+    println("[CLIENT %d] recvd waiting_queue_mutex ", client_id);
     enqueue( &shared->waiting_queue, client_id ); // waiting to place order
     shared->num_queued++;
 
     println("[CLIENT %d ] shared->num_queued = %d", client_id, shared->num_queued);
     sem_post( &shared->waiting_queue_mutex );
+    println("[CLIENT %d] post waiting_queue_mutex ", client_id);
 
   }
 
@@ -61,6 +65,7 @@ void waitForCashier() {
   println("[CLIENT %d] waiting for cashier to signal ", client_id);
   sem_wait( &shared->signal_client[client_id] );
   println("[CLIENT %d] received cashier signal ", client_id);
+
   sem_post( &shared->client_ready_to_order );
   println("[CLIENT %d] posted ready to order ", client_id);
   
@@ -69,18 +74,21 @@ void waitForCashier() {
 void order() {
   // consists of a single item. client then proceeds to order queue
 
+  println("[CLIENT %d] waiting orders_mutex", client_id );
   sem_wait( &shared->orders_mutex );
-  println("[CLIENT %d] ordering item_id %d", client_id, item_id );
+  println("[CLIENT %d] recv orders_mutex. ordering item_id %d", client_id, item_id );
   shared->orders[ client_id ] = item_id;
   sem_post( &shared->orders_mutex );
+  println("[CLIENT %d] posting orders_mutex", client_id );
 
 }
 
 void pay() {
   
-  println("[CLIENT %d] waiting for cashier_order_placed ", client_id );
-  sem_wait( &shared->cashier_order_placed );
-  println("[CLIENT %d] received cashier_order_placed ", client_id );
+  println("[CLIENT %d] waiting for cashier to signal order placed ", client_id );
+  sem_wait( &shared->signal_client[ client_id ] );
+  println("[CLIENT %d] received cashier to signal order placed ", client_id );
+
   sem_wait( &shared->order_queue_mutex );
   enqueue( &shared->order_queue, client_id );
   sem_post( &shared->order_queue_mutex );
@@ -102,21 +110,23 @@ void waitForFood() {
     sleep( wait_time );
   #endif
 
-  sem_wait( &shared->signal_client[client_id] );
+  sem_wait( &shared->signal_client[ client_id ] );
 
 }
 
 void getFood() {
 
+  println("[CLIENT] waiting server_dispatch_ready");
   sem_wait( &shared->server_dispatch_ready );
-  println("[CLIENT] server_dispatch_ready");
+  println("[CLIENT] recvd server_dispatch_ready");
+
+  //TODO - may need mutex here
   shared->total_clients_served++;
 
   sem_wait( &shared->order_queue_mutex );
   // TODO - we need some other structure to hold these since
   int c_id = dequeue( &shared->order_queue ); // the first client in the order_queue MAY NOT BE the client_id. circle back
   println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
-  shared->num_queued--;
   sem_post( &shared->order_queue_mutex );
 
 }
@@ -124,12 +134,17 @@ void getFood() {
 void eat() {
   //
   println("[CLIENT %d] eating", client_id );
-  sleep( eat_time );
+
+  #ifdef DEBUG
+    sleep( 1 );
+  #else
+    sleep( eat_time );
+  #endif
 
 }
 
 void leave() {
-  //
+  
   sem_wait( &shared->client_exit_mutex );
   println("[CLIENT %d] leaving ", client_id );
   shared->num_exited++;

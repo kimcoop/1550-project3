@@ -48,7 +48,7 @@
 #define MAX_PEOPLE 5 // max people in queue for client to question entering shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
 #define SHARED_ID 1 // shared mem seg ID
-#define NUM_CASHIERS 1
+#define NUM_CASHIERS 3
 #define NUM_MENU_ITEMS 20
 
 /*

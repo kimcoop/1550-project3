@@ -59,6 +59,7 @@ void removeSharedMem( int shmid ) {
 */
 
 void initSems() {
+  // setting final param to 0 means first process to sem will be blocked
   sem_init( &shared->waiting_queue_mutex, 0, 1 );
   sem_init( &shared->order_queue_mutex, 0, 1 );
   sem_init( &shared->db_mutex, 0, 1 );
@@ -67,12 +68,11 @@ void initSems() {
   sem_init( &shared->orders_mutex, 0, 1 );
 
   sem_init( &shared->new_order, 0, 0 );
-  sem_init( &shared->cashier_order_placed, 0, 0 );
-  sem_init( &shared->server_dispatch_ready, 0, 1 );
+  sem_init( &shared->server_dispatch_ready, 0, 0 );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
-    sem_init( &shared->signal_client[i], 0, 1 );
+    sem_init( &shared->signal_client[i], 0, 0 );
   }
 
 }
@@ -88,7 +88,6 @@ void destroySems() {
   sem_destroy( &shared->client_exit_mutex );
   
   sem_destroy( &shared->new_order );
-  sem_destroy( &shared->cashier_order_placed );
   sem_destroy( &shared->server_dispatch_ready );
   
   int i;
