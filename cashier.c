@@ -42,7 +42,8 @@ void signalClient() {
   println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
 
   sem_post( &shared->signal_client[client_id] ); // signal client that cashier will take him
-  println("(CASHIER %d) signal_client cashier is ready", cashier_id);
+  sem_post( &shared->cashier_ready );
+  println("(CASHIER %d) signal_client %d cashier is ready", cashier_id, client_id );
 
 }
 
@@ -50,9 +51,14 @@ void serviceClient() {
 
   println("(CASHIER %d) waiting client_ready_to_order ", cashier_id);
   // wait for called client to come to register
+  sem_wait( &shared->signal_client[ client_id ] );
   sem_wait( &shared->client_ready_to_order );
-  println("(CASHIER %d) received client_ready_to_order ", cashier_id);
-  sleep( service_time );
+  println("(CASHIER %d) received client_ready_to_order from client %d ", cashier_id, client_id );
+  #ifdef DEBUG
+    sleep( 1 );
+  #else
+    sleep( service_time );
+  #endif
 
   println("(CASHIER %d) waiting orders_mutex", cashier_id);
   sem_wait( &shared->orders_mutex );
@@ -68,9 +74,17 @@ void serviceClient() {
   fclose( fp );
   sem_post( &shared->db_mutex );
 
+
+  // on successful payment, move client to waiting area (out of cashiers queue)
+  sem_wait( &shared->order_queue_mutex );
+  enqueue( &shared->order_queue, client_id ); // order_queue must populate before server gets called or will be nil
+  sem_post( &shared->order_queue_mutex );
+
    // signal client the order went through
   println("(CASHIER %d) posting signal_client for order placed ", cashier_id);
   sem_post( &shared->signal_client[ client_id ] );
+  sem_post( &shared->cashier_order_placed );
+
 
   logOrder();
 
@@ -122,15 +136,15 @@ int main( int argc, char *argv[] ) {
   do {
 
     println( "(if 0, cashier breaks) shared->num_queued = %d ", shared->num_queued );
-    while ( shared->num_queued == 0 ) {
+    //while ( shared->num_queued == 0 ) {
       #ifdef DEBUG
-        sleep( 1 );
+        sleep( 2 );
       #else
         sleep( break_time );
       #endif
       println( "CASHIER %d taking break ", cashier_id );
       println( "(0?) shared->num_queued = %d ", shared->num_queued );
-    }
+    // }
 
     signalClient();
     serviceClient();

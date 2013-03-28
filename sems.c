@@ -69,6 +69,7 @@ void initSems() {
 
   sem_init( &shared->new_order, 0, 0 );
   sem_init( &shared->server_dispatch_ready, 0, 0 );
+  sem_init( &shared->cashier_ready, 0, 0 );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
@@ -89,6 +90,7 @@ void destroySems() {
   
   sem_destroy( &shared->new_order );
   sem_destroy( &shared->server_dispatch_ready );
+  sem_destroy( &shared->cashier_ready );
   
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

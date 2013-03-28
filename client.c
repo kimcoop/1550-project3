@@ -64,8 +64,10 @@ void waitForCashier() {
 
   println("[CLIENT %d] waiting for cashier to signal ", client_id);
   sem_wait( &shared->signal_client[client_id] );
+  sem_wait( &shared->cashier_ready );
   println("[CLIENT %d] received cashier signal ", client_id);
 
+  sem_post( &shared->signal_client[ client_id ] );
   sem_post( &shared->client_ready_to_order );
   println("[CLIENT %d] posted ready to order ", client_id);
   
@@ -87,12 +89,9 @@ void pay() {
   
   println("[CLIENT %d] waiting for cashier to signal order placed ", client_id );
   sem_wait( &shared->signal_client[ client_id ] );
+  sem_wait( &shared->cashier_order_placed );
   println("[CLIENT %d] received cashier to signal order placed ", client_id );
 
-  sem_wait( &shared->order_queue_mutex );
-  enqueue( &shared->order_queue, client_id );
-  sem_post( &shared->order_queue_mutex );
-  
   println("[CLIENT %d] paying", client_id );
 
 }
@@ -112,13 +111,14 @@ void waitForFood() {
 
   sem_wait( &shared->signal_client[ client_id ] );
 
-}
-
-void getFood() {
-
   println("[CLIENT] waiting server_dispatch_ready");
   sem_wait( &shared->server_dispatch_ready );
   println("[CLIENT] recvd server_dispatch_ready");
+  
+
+}
+
+void getFood() {
 
   //TODO - may need mutex here
   shared->total_clients_served++;

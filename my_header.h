@@ -24,7 +24,7 @@
 #define QUEUE_SIZE 1000
 #define SLEEP_TIME 20
 #define CLIENT_BATCH_SIZE 1
-#define MAX_NUM_CLIENTS 3
+#define MAX_NUM_CLIENTS 1
 #define DB_PRINT_FORMAT "Client %d ordered item %d (%s, $%.2f)"
 
 
@@ -48,7 +48,7 @@
 #define MAX_PEOPLE 5 // max people in queue for client to question entering shop
 #define PROBABILITY 50 // client decision to leave congested restaurant
 #define SHARED_ID 1 // shared mem seg ID
-#define NUM_CASHIERS 3
+#define NUM_CASHIERS 1
 #define NUM_MENU_ITEMS 20
 
 /*
@@ -81,6 +81,7 @@ typedef struct {
  	sem_t waiting_queue_mutex;
  	sem_t order_queue_mutex;
  	sem_t orders_mutex;
+ 	sem_t cashier_ready; // cashier is available
  	sem_t client_ready_to_order; // signal cashier when client is at register
  	sem_t new_order; // alert the server to new order
  	sem_t cashier_order_placed; // signal client that order was successful
