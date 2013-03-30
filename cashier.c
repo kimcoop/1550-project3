@@ -149,22 +149,23 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
-
+  int i = 0;
   do {
 
     if ( !clientsPresent() ) {
 
       println( "(CASHIER %d) breaking since queue empty ", cashier_id );
       sleep( getRandTime( break_time ) );
-      
+
     } else {
 
       signalClient();
       serviceClient();
       
     }
-
-  } while ( OPERATE );
+    i++;
+    println(" (CASHIER) shared->operate %d ", shared->OPERATE );
+  } while ( shared->OPERATE && i < 20);
 
   println("( CASHIER )  detachSharedMem " );
   detachSharedMem( shared );

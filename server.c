@@ -101,7 +101,8 @@ int main( int argc, char *argv[] ) {
     awaitOrder();
     prepareFood();
     serveFood();
-  } while ( OPERATE );
+    println("{{ SERVER }} shared->operate %d ", shared->OPERATE );
+  } while ( shared->OPERATE );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );

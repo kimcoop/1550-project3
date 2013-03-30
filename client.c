@@ -202,7 +202,6 @@ int main( int argc, char *argv[] ) {
   shared = attachSharedMem( shared_id );
   initSems();
 
-
   arrive();
   waitForCashier();
   order();
@@ -212,6 +211,7 @@ int main( int argc, char *argv[] ) {
   eat();
   leave();
 
+  println( "[CLIENT] shared->OPERATE %d ", shared->OPERATE );
   println( "[CLIENT] %d detaching", client_id );
   detachSharedMem( shared );
 

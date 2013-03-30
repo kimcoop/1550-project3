@@ -102,17 +102,23 @@ void spawnClients( char* shmid_str ) {
 void initSharedData() {
   shared->total_clients_served = 0;
   shared->num_queued = 0;
-  shared->total_revenue = 0.0;
-  shared->total_wait_time = 0;
-  shared->num_eating = 0;
   shared->num_exited = 0;
-  shared->num_in_store = 0;
+  shared->OPERATE = TRUE;
   init_queue( &shared->waiting_queue );
   init_queue( &shared->order_queue );
 
   int i;
   for ( i=0; i < MAX_NUM_CLIENTS; i++ )
     shared->orders[ i ] = -1; // default each order to -1
+
+  // set all mutexes to 1
+  p_sem_post( &shared->waiting_queue_mutex );
+  p_sem_post( &shared->order_queue_mutex );
+  p_sem_post( &shared->db_mutex );
+  p_sem_post( &shared->server_mutex );
+  p_sem_post( &shared->client_exit_mutex );
+  p_sem_post( &shared->menu_items_mutex );
+  p_sem_post( &shared->orders_mutex );
 }
 
 void initSharedMem() {
@@ -133,7 +139,6 @@ int main( int argc, char *argv[] ) {
     return 0;
   } else if ( argc == 2 ) { // --defaults, -d, etc
     println("Using defaults.");
-    USE_DEFAULTS = TRUE;
   } else if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
@@ -159,14 +164,6 @@ int main( int argc, char *argv[] ) {
   initSems();
   initSharedData();
 
-  // set all mutexes to 1
-  p_sem_post( &shared->waiting_queue_mutex );
-  p_sem_post( &shared->order_queue_mutex );
-  p_sem_post( &shared->db_mutex );
-  p_sem_post( &shared->client_exit_mutex );
-  p_sem_post( &shared->menu_items_mutex );
-  p_sem_post( &shared->orders_mutex );
-
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
@@ -175,18 +172,21 @@ int main( int argc, char *argv[] ) {
   spawnCashiers( shmid_str );
 
   num_clients = 0; // helps assign client_id for each client spawned
-  while ( OPERATE && num_clients < MAX_NUM_CLIENTS ) { // produce clients in groups of CLIENT_BATCH_SIZE
+  println( "PANER shared->OPERATE %d ", shared->OPERATE );
+
+  do { // produce clients in groups of CLIENT_BATCH_SIZE
     spawnClients( shmid_str );
     sleep( SLEEP_TIME );
-    if ( !OPERATE ) break;
+    if ( !shared->OPERATE ) break;
     println( "..." );
     println( "%d more clients approaching!", CLIENT_BATCH_SIZE );
     println( "..." );
-  }
-
+  } while ( shared->OPERATE && num_clients < MAX_NUM_CLIENTS );
   
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
     printStats();
+    println( "Waiting for child processes to exit. " );
+    sleep( 5 );
     detachSharedMem( shared ); // note that printStats() requires access to shared, so this must come after
     cleanup(); // scrapes shmids dumped in file and cleans them all
   }

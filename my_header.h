@@ -54,8 +54,6 @@
 /*
  GLOBALS
 */
-int USE_DEFAULTS = FALSE;
-int OPERATE = TRUE;
 
 typedef struct {
   int q[QUEUE_SIZE+1];		// body of queue
@@ -66,28 +64,29 @@ typedef struct {
 
 typedef struct { 
  	
- 	int num_in_store, total_clients_served, num_queued, num_eating, num_exited;
- 	int food_ready_client_id; // client_id for server to alert food is ready
- 	int total_wait_time; // avg wait time (enter store -> leave)
- 	
- 	float total_revenue;
- 	Queue waiting_queue; // clients first arrive here
- 	Queue order_queue; // clients move here after placing order
+ 	int OPERATE; // condition for while loop for each program
+ 	int total_clients_served, num_queued, num_exited;
+
+ 	Queue waiting_queue, order_queue; // clients move from waiting_queue to order_queue here after placing order
 
  	int orders[MAX_NUM_CLIENTS]; // track client orders ( indexed by client_id )
+ 	int wait_times[MAX_NUM_CLIENTS]; // track total wait times
+ 	int time_in_shop[MAX_NUM_CLIENTS]; // track total time in shop
  	int freq_menu_items[NUM_MENU_ITEMS]; // track top (5) most popular menu items & how much each has generated
- 	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
 
- 	sem_t waiting_queue_mutex, order_queue_mutex, orders_mutex;
- 	sem_t cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
-
- 	sem_t new_order, meal_dispatch; // alert the server to new order
-
- 	sem_t cashier_order_placed; // signal client that order was successful
+ 	sem_t waiting_queue_mutex;
+ 	sem_t order_queue_mutex;
+ 	sem_t orders_mutex;
+ 	sem_t menu_items_mutex; // track frequencies of each item
+ 	sem_t db_mutex; // dumping order to file
  	sem_t server_mutex; // server is prepared to give client food
  	sem_t client_exit_mutex;
- 	sem_t menu_items_mutex;
- 	sem_t db_mutex; // dumping order to file
+ 	
+ 	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
+
+ 	sem_t cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
+ 	sem_t new_order, meal_dispatch; // alert the server to new order
+ 	sem_t cashier_order_placed; // signal client that order was successful
 
  } SharedData;
 
