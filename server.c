@@ -31,29 +31,28 @@ void printValues() {
 
 void awaitOrder() {
 
-  // println("{ SERVER } waiting new_order");
-  // sem_wait( &shared->new_order );
-  // println("{ SERVER } received new_order");
-  
+  println("{ SERVER } waiting new_order");
+  p_sem_wait( &shared->new_order );
+  println("{ SERVER } received new_order");
   
 }
 
 void prepareFood() {
   println("{ SERVER } waiting order_queue_mutex");
-  sem_wait( &shared->order_queue_mutex );
+  p_sem_wait( &shared->order_queue_mutex );
   println("{ SERVER } recvd order_queue_mutex");
 
   if ( !empty( &shared->order_queue ) ) {
     client_id = peek( &shared->order_queue );
     println("{ SERVER } prepareFood for client_id %d", client_id );
     println("{ SERVER } order_up[ %d ]", client_id );
-    sem_post( &shared->signal_client[ client_id ] );
+    p_sem_post( &shared->signal_client[ client_id ] );
   } else {
     println("ORDER QUEUE EMPTY");
   }
 
   println("{ SERVER } post order_queue_mutex" );
-  sem_post( &shared->order_queue_mutex );
+  p_sem_post( &shared->order_queue_mutex );
 }
 
 void serveFood() {
@@ -64,8 +63,19 @@ void serveFood() {
     sleep( service_time );
   #endif
 
-  println("{ SERVER } posting server_dispatch_ready");
-  sem_post( &shared->server_dispatch_ready );
+  // ensure server is able to distribute food to client uninterrupted
+  println("{ SERVER } posting server_mutex");
+  p_sem_wait( &shared->server_mutex );
+
+  // wait for client to come to server table
+  println("{ SERVER } recvd client %d at server table", client_id );
+  p_sem_wait( &shared->signal_client[ client_id ] );
+
+
+  // hand over meal
+  println("{ SERVER } posting meal dispatched to client %d ", client_id );
+  p_sem_post( &shared->meal_dispatch );
+
 }
 
 int main( int argc, char *argv[] ) {
@@ -91,17 +101,11 @@ int main( int argc, char *argv[] ) {
   shared = attachSharedMem( shared_id );
   initSems();
 
-  println( "[ SERVER ] shared->num_queued = %d", shared->num_queued);
-      println("*** server 1111" );
-      p_sem_wait( &shared->payment ); 
-      println("*** server 2222" );
-
-  // do {
-  //   // awaitOrder();
-
-  //   prepareFood();
-  //   serveFood();
-  // } while ( OPERATE );
+  do {
+    awaitOrder();
+    prepareFood();
+    serveFood();
+  } while ( OPERATE );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );

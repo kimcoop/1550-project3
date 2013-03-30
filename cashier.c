@@ -30,6 +30,21 @@ void printValues() {
   println( "" );
 }
 
+int clientsPresent() {
+
+  // println("(CASHIER %d) waiting waiting_queue_mutex", cashier_id);
+  // p_sem_wait( &shared->waiting_queue_mutex );
+  // println("(CASHIER %d) recvd waiting_queue_mutex", cashier_id);
+  // p_sem_post( &shared->waiting_queue_mutex );
+  // println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
+
+  println(" waiting queue? %d ", empty( &shared->waiting_queue ) );
+  println(" num clients? %d ", shared->num_queued );
+
+  return !empty( &shared->waiting_queue );
+
+}
+
 void signalClient() { 
   
   println("(CASHIER %d) waiting waiting_queue_mutex", cashier_id);
@@ -43,12 +58,8 @@ void signalClient() {
   println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
 
   // signal client that cashier will take him
-  // p_sem_post( &shared->cashier );
-  // println("(CASHIER %d) posted cashier is ready", cashier_id );
-
-  println("(CASHIER %d) posting receipt for server", cashier_id);
-  p_sem_post( &shared->receipt ); 
-
+  p_sem_post( &shared->cashier );
+  println("(CASHIER %d) posted cashier is ready", cashier_id );
 
 }
 
@@ -94,14 +105,14 @@ void serviceClient() {
   p_sem_wait( &shared->payment );
   println("(CASHIER %d) recvd payment ", cashier_id );
 
-  // println("(CASHIER %d) posting receipt ", cashier_id );
-  // p_sem_post( &shared->receipt );
+  println("(CASHIER %d) posting receipt ", cashier_id );
+  p_sem_post( &shared->receipt );
 
   // signal to server that there is a new order to be filled
-  println("(CASHIER %d) posting receipt for server", cashier_id);
-  p_sem_post( &shared->receipt ); 
+  println("(CASHIER %d) posting new_order for server", cashier_id);
+  p_sem_post( &shared->new_order ); 
 
-  // logOrder();
+  logOrder( item_id );
 }
 
 void logOrder( item_id ) {
@@ -143,22 +154,25 @@ int main( int argc, char *argv[] ) {
   shared = attachSharedMem( shared_id );
   initSems();
 
-  // do {
+  do {
 
-    //while ( shared->num_queued == 0 ) {
+    if ( !clientsPresent() ) {
+      println( "(CASHIER %d) breaking since queue empty ", cashier_id );
+
       #ifdef DEBUG
         sleep( 1 );
       #else
         sleep( break_time );
       #endif
-      println( "CASHIER %d ", cashier_id );
-    // }
 
-    // signalClient();
+    } else {
 
-    // serviceClient();
-    
-  // } while ( OPERATE );
+      signalClient();
+      serviceClient();
+      
+    }
+
+  } while ( OPERATE );
 
   println("( CASHIER )  detachSharedMem " );
   detachSharedMem( shared );

@@ -117,6 +117,7 @@ void initSharedData() {
 
 void initSharedMem() {
   key = ftok( KEY, KEY_MODE ); 
+  println(" KEY******: 0x%x", key );
   shmid = allocateSharedMem( key );
   shared = attachSharedMem( shmid );
 }
@@ -158,6 +159,14 @@ int main( int argc, char *argv[] ) {
   initSems();
   initSharedData();
 
+  // set all mutexes to 1
+  p_sem_post( &shared->waiting_queue_mutex );
+  p_sem_post( &shared->order_queue_mutex );
+  p_sem_post( &shared->db_mutex );
+  p_sem_post( &shared->client_exit_mutex );
+  p_sem_post( &shared->menu_items_mutex );
+  p_sem_post( &shared->orders_mutex );
+
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
@@ -174,6 +183,7 @@ int main( int argc, char *argv[] ) {
     println( "%d more clients approaching!", CLIENT_BATCH_SIZE );
     println( "..." );
   }
+
   
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
     printStats();

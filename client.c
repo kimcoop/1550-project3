@@ -80,6 +80,7 @@ void order() {
   p_sem_post( &shared->orders_mutex );
   println("[CLIENT %d] posting orders_mutex", client_id );
 
+  println("[CLIENT %d] posting ordered", client_id );
   p_sem_post( &shared->ordered );
 
 }
@@ -114,23 +115,24 @@ void waitForFood() {
 
   p_sem_wait( &shared->signal_client[ client_id ] );
 
-  println("[CLIENT] waiting server_dispatch_ready");
-  p_sem_wait( &shared->server_dispatch_ready );
-  println("[CLIENT] recvd server_dispatch_ready");
-  
-
 }
 
 void getFood() {
 
-  //TODO - may need mutex here
-  shared->total_clients_served++;
+  // signal to server that client is at server table
+  println("[CLIENT %d ] posting signal_client[] (at server table)", client_id );
+  p_sem_post( &shared->signal_client[ client_id ] );
 
-  p_sem_wait( &shared->order_queue_mutex );
-  // TODO - we need some other structure to hold these since
-  int c_id = dequeue( &shared->order_queue ); // the first client in the order_queue MAY NOT BE the client_id. circle back
-  println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
-  p_sem_post( &shared->order_queue_mutex );
+  // wait for server to hand over meal
+  println("[CLIENT %d ] waiting meal meal_dispatch", client_id );
+  p_sem_wait( &shared->meal_dispatch );
+  println("[CLIENT %d ] recvd meal meal_dispatch", client_id );
+
+  // release serve attention
+  println("[ CLIENT %d  ] posting server_mutex", client_id );
+  shared->total_clients_served++;
+  p_sem_post( &shared->server_mutex );
+
 
 }
 
@@ -208,21 +210,15 @@ int main( int argc, char *argv[] ) {
   
   shared = attachSharedMem( shared_id );
   initSems();
-  
 
 
-  // arrive();
-  println(" [CLIENT %d] posting order for server", client_id );
-  p_sem_post( &shared->payment ); 
-  
-
-
-  // waitForCashier();
-  // order();
-  // pay();
-  // waitForFood();
-  // getFood();
-  // eat();
+  arrive();
+  waitForCashier();
+  order();
+  pay();
+  waitForFood();
+  getFood();
+  eat();
   leave();
 
   println( "[CLIENT] %d detaching", client_id );
