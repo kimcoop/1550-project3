@@ -25,6 +25,7 @@ void cleanupShmids( char* filename ) {
   } else {
     while ( !feof(fp)  ) {
       fscanf( fp, "%d", &shmid );
+      println("shmid %d", shmid ); // TODO - why is this running a bazillion times?
       fscanf( fp, "%c", &c ); //newline
       cleanupShmid( shmid );
     } // end while 

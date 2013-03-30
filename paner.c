@@ -162,14 +162,11 @@ int main( int argc, char *argv[] ) {
   toString( shmid_str, shmid );
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
 
-  println( "[ PARENT ] shared->total_clients_served = %d", shared->total_clients_served);
-  println( "[ PARENT ] shared->num_queued = %d", shared->num_queued);
-
   server( shmid_str );
   spawnCashiers( shmid_str );
 
   num_clients = 0; // helps assign client_id for each client spawned
-  while ( OPERATE ) { // produce clients in groups of CLIENT_BATCH_SIZE
+  while ( OPERATE && num_clients < MAX_NUM_CLIENTS ) { // produce clients in groups of CLIENT_BATCH_SIZE
     spawnClients( shmid_str );
     sleep( SLEEP_TIME );
     if ( !OPERATE ) break;

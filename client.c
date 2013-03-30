@@ -47,13 +47,15 @@ void arrive() {
 
     println("[CLIENT %d] waiting waiting_queue_mutex ", client_id);
 
-    sem_wait( &shared->waiting_queue_mutex );
+    p_sem_wait( &shared->waiting_queue_mutex );
     println("[CLIENT %d] recvd waiting_queue_mutex ", client_id);
     enqueue( &shared->waiting_queue, client_id ); // waiting to place order
+    shared->orders[ client_id ] = 17;
+
     shared->num_queued++;
 
     println("[CLIENT %d ] shared->num_queued = %d", client_id, shared->num_queued);
-    sem_post( &shared->waiting_queue_mutex );
+    p_sem_post( &shared->waiting_queue_mutex );
     println("[CLIENT %d] post waiting_queue_mutex ", client_id);
 
   }
@@ -62,9 +64,9 @@ void arrive() {
 
 void waitForCashier() {
 
-  // println("[CLIENT %d] waiting for cashier to signal ", client_id);
-  // sem_wait( &shared->cashier );
-  // println("[CLIENT %d] received cashier signal ", client_id);
+  println("[CLIENT %d] waiting for cashier to signal ", client_id);
+  p_sem_wait( &shared->cashier );
+  println("[CLIENT %d] received cashier signal ", client_id);
   
 }
 
@@ -72,29 +74,28 @@ void order() {
   // consists of a single item. client then proceeds to order queue
 
   println("[CLIENT %d] waiting orders_mutex", client_id );
-  sem_wait( &shared->orders_mutex );
+  p_sem_wait( &shared->orders_mutex );
   println("[CLIENT %d] recv orders_mutex. ordering item_id %d", client_id, item_id );
   shared->orders[ client_id ] = item_id;
-  sem_post( &shared->orders_mutex );
+  p_sem_post( &shared->orders_mutex );
   println("[CLIENT %d] posting orders_mutex", client_id );
 
-  sem_post( &shared->ordered );
+  p_sem_post( &shared->ordered );
 
 }
 
 void pay() {
   
   println("[CLIENT %d] waiting for cashier order placed ", client_id );
-  sem_wait( &shared->cashier_order_placed );
+  p_sem_wait( &shared->cashier_order_placed );
   println("[CLIENT %d] received cashier order placed ", client_id );
 
   println("[CLIENT %d] posting payment", client_id );
-  sem_post( &shared->payment );
+  p_sem_post( &shared->payment );
 
   println("[CLIENT %d] waiting receipt", client_id );
-  sem_wait( &shared->receipt );
+  p_sem_wait( &shared->receipt );
   println("[CLIENT %d] recvd receipt", client_id );
-
 
 }
 
@@ -111,10 +112,10 @@ void waitForFood() {
     sleep( wait_time );
   #endif
 
-  sem_wait( &shared->signal_client[ client_id ] );
+  p_sem_wait( &shared->signal_client[ client_id ] );
 
   println("[CLIENT] waiting server_dispatch_ready");
-  sem_wait( &shared->server_dispatch_ready );
+  p_sem_wait( &shared->server_dispatch_ready );
   println("[CLIENT] recvd server_dispatch_ready");
   
 
@@ -125,11 +126,11 @@ void getFood() {
   //TODO - may need mutex here
   shared->total_clients_served++;
 
-  sem_wait( &shared->order_queue_mutex );
+  p_sem_wait( &shared->order_queue_mutex );
   // TODO - we need some other structure to hold these since
   int c_id = dequeue( &shared->order_queue ); // the first client in the order_queue MAY NOT BE the client_id. circle back
   println("**[CLIENT] issue if not matching: %d & %d ", client_id, c_id );
-  sem_post( &shared->order_queue_mutex );
+  p_sem_post( &shared->order_queue_mutex );
 
 }
 
@@ -147,12 +148,12 @@ void eat() {
 
 void leave() {
   
-  sem_wait( &shared->client_exit_mutex );
+  p_sem_wait( &shared->client_exit_mutex );
   println("[CLIENT %d] leaving ", client_id );
   shared->num_exited++;
 
   println("[CLIENT %d] shared->num_exited %d ", client_id, shared->num_exited);
-  sem_post( &shared->client_exit_mutex );
+  p_sem_post( &shared->client_exit_mutex );
 
 }
 
@@ -170,10 +171,7 @@ void printValues() {
 
 int main( int argc, char *argv[] ) {
 
-  if ( argc == 1 ) {
-    printClientOptions();
-    return 0;
-  } else if ( (argc-1) % 2 != 0 ) {
+  if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
   } else { // overwrite defaults
@@ -209,18 +207,22 @@ int main( int argc, char *argv[] ) {
   // printValues();
   
   shared = attachSharedMem( shared_id );
+  initSems();
+  
 
-  // if (sem_wait( &shared->cashier ) == -1) {
-  //   perror( "sem_wait ");
-  // }
 
-  arrive();
-  waitForCashier();
-  order();
-  pay();
-  waitForFood();
-  getFood();
-  eat();
+  // arrive();
+  println(" [CLIENT %d] posting order for server", client_id );
+  p_sem_post( &shared->payment ); 
+  
+
+
+  // waitForCashier();
+  // order();
+  // pay();
+  // waitForFood();
+  // getFood();
+  // eat();
   leave();
 
   println( "[CLIENT] %d detaching", client_id );

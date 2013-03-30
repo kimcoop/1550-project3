@@ -7,6 +7,7 @@ Due March 28, 2013
 */
 
 /*
+  void awaitOrder();
   void printValues();
   void prepareFood();
   void serveFood();
@@ -28,12 +29,16 @@ void printValues() {
 
 }
 
-void prepareFood() {
+void awaitOrder() {
 
-  println("{ SERVER } waiting new_order");
-  sem_wait( &shared->new_order );
-  println("{ SERVER } received new_order");
+  // println("{ SERVER } waiting new_order");
+  // sem_wait( &shared->new_order );
+  // println("{ SERVER } received new_order");
   
+  
+}
+
+void prepareFood() {
   println("{ SERVER } waiting order_queue_mutex");
   sem_wait( &shared->order_queue_mutex );
   println("{ SERVER } recvd order_queue_mutex");
@@ -66,10 +71,7 @@ void serveFood() {
 int main( int argc, char *argv[] ) {
 
   
-  if ( argc == 1 ) { 
-    printServerOptions();
-    return 0;
-  } else if ( (argc-1) % 2 != 0 ) {
+  if ( (argc-1) % 2 != 0 ) {
     println("Malformed flags.");
     return EXIT_FAILURE;
   } else { // overwrite defaults
@@ -87,11 +89,19 @@ int main( int argc, char *argv[] ) {
 
   // printValues();
   shared = attachSharedMem( shared_id );
+  initSems();
 
-  do {
-    prepareFood();
-    serveFood();
-  } while ( OPERATE );
+  println( "[ SERVER ] shared->num_queued = %d", shared->num_queued);
+      println("*** server 1111" );
+      p_sem_wait( &shared->payment ); 
+      println("*** server 2222" );
+
+  // do {
+  //   // awaitOrder();
+
+  //   prepareFood();
+  //   serveFood();
+  // } while ( OPERATE );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );

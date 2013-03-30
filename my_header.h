@@ -78,13 +78,13 @@ typedef struct {
  	int freq_menu_items[NUM_MENU_ITEMS]; // track top (5) most popular menu items & how much each has generated
  	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
 
- 	sem_t waiting_queue_mutex;
- 	sem_t order_queue_mutex;
- 	sem_t orders_mutex;
- 	 // cashier interactions (placing order, paying, getting receipt)
- 	sem_t cashier, ordered, payment, receipt;
+ 	sem_t waiting_queue_mutex, order_queue_mutex, orders_mutex;
+ 	sem_t cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
+
  	sem_t client_ready_to_order; // signal cashier when client is at register
- 	sem_t new_order; // alert the server to new order
+
+ 	sem_t client_order; // alert the server to new order
+
  	sem_t cashier_order_placed; // signal client that order was successful
  	sem_t server_dispatch_ready; // server is prepared to give client food
  	sem_t client_exit_mutex;
@@ -136,6 +136,8 @@ int 		allocateSharedMem( key_t );
 SharedData*	  attachSharedMem( int );
 void 		detachSharedMem( SharedData* );
 void 		removeSharedMem( int );
+void p_sem_wait( sem_t* );
+void p_sem_post( sem_t* );
 void 		initSems();
 void 		destroySems();
 
