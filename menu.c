@@ -21,8 +21,8 @@ int getWaitTime( int item_id ) {
   int max, min;
   max = getMaxTime( item_id );
   min = getMinTime( item_id );
-  // return ( rand() % t );
-  return max-min;
+  return getTime( max-min );
+
 }
 
 char* getDescription( int item_id ) {

@@ -57,11 +57,7 @@ void prepareFood() {
 
 void serveFood() {
 
-  #ifdef DEBUG
-    sleep( 1 );
-  #else
-    sleep( service_time );
-  #endif
+  sleep( getRandTime( service_time ) );
 
   // ensure server is able to distribute food to client uninterrupted
   println("{ SERVER } posting server_mutex");

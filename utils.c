@@ -1,5 +1,6 @@
 /*
 
+int getRandTime( int );
 char* toString( char*, int );
 void signalHandler( int );
 int installSignalHandler();
@@ -8,7 +9,25 @@ void emptyFile( char* );
 
 */
 
+int getRandTime( int time ) {
 
+  #ifdef DEBUG
+    return 1;
+  #else
+    return rand() % time;
+  #endif
+
+}
+
+int getTime( int time ) {
+
+  #ifdef DEBUG
+    return 1;
+  #else
+    return time;
+  #endif
+
+}
 
 char* toString( char* str, int i ) {
   sprintf( str, "%d", i );

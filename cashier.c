@@ -68,12 +68,8 @@ void serviceClient() {
   println("(CASHIER %d) waiting order placed ", cashier_id, client_id );
   p_sem_wait( &shared->ordered );
   println("(CASHIER %d) recvd order placed ", cashier_id, client_id );
-  #ifdef DEBUG
-    sleep( 1 );
-  #else
-    sleep( service_time );
-  #endif
 
+  sleep( getRandTime( service_time ) );
 
   println("(CASHIER %d) waiting orders_mutex", cashier_id);
   p_sem_wait( &shared->orders_mutex );
@@ -120,7 +116,7 @@ void logOrder( item_id ) {
   println("(CASHIER %d) waiting menu_items_mutex", cashier_id );
   p_sem_wait( &shared->menu_items_mutex );
   println("(CASHIER %d) recvd menu_items_mutexxxx", cashier_id );
-  println("(CASHIER %d) increasing freq_menu_items[ %d ] from %d to %d", cashier_id, item_id, shared->freq_menu_items[ item_id-1 ], shared->freq_menu_items[ item_id-1 ]+1);
+  println("(CASHIER %d) increasing freq_menu_items[ %d ] from %d to %d", cashier_id, item_id-1, shared->freq_menu_items[ item_id-1 ], shared->freq_menu_items[ item_id-1 ]+1);
   shared->freq_menu_items[ item_id-1 ]++;
   p_sem_post( &shared->menu_items_mutex );
   println("(CASHIER %d) post menu_items_mutex", cashier_id );
@@ -157,14 +153,10 @@ int main( int argc, char *argv[] ) {
   do {
 
     if ( !clientsPresent() ) {
+
       println( "(CASHIER %d) breaking since queue empty ", cashier_id );
-
-      #ifdef DEBUG
-        sleep( 1 );
-      #else
-        sleep( break_time );
-      #endif
-
+      sleep( getRandTime( break_time ) );
+      
     } else {
 
       signalClient();

@@ -40,8 +40,8 @@
 /*
  DEFAULTS (overwritten by command line args)
  */
-#define SERVICE_TIME 5 // max time random [1..service_time] this cashier takes to service
-#define BREAK_TIME 5 // max break time random [1..break_time]
+#define SERVICE_TIME 2 // max time random [1..service_time] this cashier takes to service
+#define BREAK_TIME 2 // max break time random [1..break_time]
 #define ITEM_ID 1 // menu ID of the meal
 #define CLIENT_ID -1
 #define EAT_TIME 5 // max time random [1..eat_time] client spends eating food before leaving
@@ -121,6 +121,7 @@ void printValues();
 /* 
  UTILS.C 
 */
+int getRandTime( int time );
 char* toString( char*, int );
 void signalHandler( int );
 int installSignalHandler();
