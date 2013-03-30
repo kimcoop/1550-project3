@@ -31,27 +31,22 @@ void printValues() {
 
 void awaitOrder() {
 
-  println("{ SERVER } waiting new_order");
   p_sem_wait( &shared->new_order );
-  println("{ SERVER } received new_order");
+  println( "SERVER received a new order." );
   
 }
 
 void prepareFood() {
-  println("{ SERVER } waiting order_queue_mutex");
   p_sem_wait( &shared->order_queue_mutex );
-  println("{ SERVER } recvd order_queue_mutex");
 
   if ( !empty( &shared->order_queue ) ) {
-    client_id = peek( &shared->order_queue );
-    println("{ SERVER } prepareFood for client_id %d", client_id );
-    println("{ SERVER } order_up[ %d ]", client_id );
+    client_id = dequeue( &shared->order_queue );
+    println("SERVER prepared food for client_id %d", client_id );
     p_sem_post( &shared->signal_client[ client_id ] );
   } else {
     println("ORDER QUEUE EMPTY");
   }
 
-  println("{ SERVER } post order_queue_mutex" );
   p_sem_post( &shared->order_queue_mutex );
 }
 
@@ -59,14 +54,9 @@ void serveFood() {
 
   sleep( getRandTime( service_time ) );
 
-  // ensure server is able to distribute food to client uninterrupted
-  println("{ SERVER } posting server_mutex");
-  p_sem_wait( &shared->server_mutex );
-
   // wait for client to come to server table
   println("{ SERVER } recvd client %d at server table", client_id );
   p_sem_wait( &shared->signal_client[ client_id ] );
-
 
   // hand over meal
   println("{ SERVER } posting meal dispatched to client %d ", client_id );
@@ -101,8 +91,8 @@ int main( int argc, char *argv[] ) {
     awaitOrder();
     prepareFood();
     serveFood();
-    println("{{ SERVER }} shared->operate %d ", shared->OPERATE );
-  } while ( shared->OPERATE );
+    println("{{ SERVER }} shared->total_clients_served %d ", shared->total_clients_served );
+  } while ( shared->total_clients_served < MAX_NUM_CLIENTS );
 
   println("{ SERVER }  detachSharedMem " );
   detachSharedMem( shared );

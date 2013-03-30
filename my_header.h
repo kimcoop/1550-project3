@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <fcntl.h>           /* For O_* constants */
 #include <errno.h>
+#include <time.h>
 
 
 #define MEDIUM_BUFFER 32
@@ -24,7 +25,7 @@
 #define QUEUE_SIZE 1000
 #define SLEEP_TIME 20
 #define CLIENT_BATCH_SIZE 1
-#define MAX_NUM_CLIENTS 1
+#define MAX_NUM_CLIENTS 3
 #define DB_PRINT_FORMAT "Client %d ordered item %d (%s, $%.2f)"
 
 
@@ -41,7 +42,7 @@
  DEFAULTS (overwritten by command line args)
  */
 #define SERVICE_TIME 2 // max time random [1..service_time] this cashier takes to service
-#define BREAK_TIME 2 // max break time random [1..break_time]
+#define BREAK_TIME 3 // max break time random [1..break_time]
 #define ITEM_ID 1 // menu ID of the meal
 #define CLIENT_ID -1
 #define EAT_TIME 5 // max time random [1..eat_time] client spends eating food before leaving
@@ -64,7 +65,6 @@ typedef struct {
 
 typedef struct { 
  	
- 	int OPERATE; // condition for while loop for each program
  	int total_clients_served, num_queued, num_exited;
 
  	Queue waiting_queue, order_queue; // clients move from waiting_queue to order_queue here after placing order
@@ -84,7 +84,7 @@ typedef struct {
  	
  	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
 
- 	sem_t cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
+ 	sem_t client_present, cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
  	sem_t new_order, meal_dispatch; // alert the server to new order
  	sem_t cashier_order_placed; // signal client that order was successful
 

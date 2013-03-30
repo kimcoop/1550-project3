@@ -32,15 +32,6 @@ void printValues() {
 
 int clientsPresent() {
 
-  // println("(CASHIER %d) waiting waiting_queue_mutex", cashier_id);
-  // p_sem_wait( &shared->waiting_queue_mutex );
-  // println("(CASHIER %d) recvd waiting_queue_mutex", cashier_id);
-  // p_sem_post( &shared->waiting_queue_mutex );
-  // println("(CASHIER %d) post waiting_queue_mutex", cashier_id);
-
-  println(" waiting queue? %d ", empty( &shared->waiting_queue ) );
-  println(" num clients? %d ", shared->num_queued );
-
   return !empty( &shared->waiting_queue );
 
 }
@@ -149,13 +140,15 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
-  int i = 0;
+  
   do {
 
+    p_sem_wait( &shared->client_present );
+      
     if ( !clientsPresent() ) {
 
-      println( "(CASHIER %d) breaking since queue empty ", cashier_id );
-      sleep( getRandTime( break_time ) );
+      println( "(CASHIER %d) no clients present ", cashier_id );
+      // sleep(  break_time );
 
     } else {
 
@@ -163,9 +156,9 @@ int main( int argc, char *argv[] ) {
       serviceClient();
       
     }
-    i++;
-    println(" (CASHIER) shared->operate %d ", shared->OPERATE );
-  } while ( shared->OPERATE && i < 20);
+    
+    println(" (CASHIER) shared->total_clients_served %d ", shared->total_clients_served );
+  } while ( shared->total_clients_served < MAX_NUM_CLIENTS );
 
   println("( CASHIER )  detachSharedMem " );
   detachSharedMem( shared );

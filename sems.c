@@ -112,14 +112,13 @@ void initSems() {
   p_sem_open( &shared->menu_items_mutex, 1, "/menu_items_mutex" );
   p_sem_open( &shared->orders_mutex, 1, "/orders_mutex" );
 
-  p_sem_open( &shared->cashier, 0, "/cashier" );
+  p_sem_open( &shared->cashier, 3, "/cashier" );
   p_sem_open( &shared->payment, 0, "/payment" );
   p_sem_open( &shared->receipt, 0, "/receipt" );
   p_sem_open( &shared->new_order, 0, "/new_order" );
 
-  p_sem_open( &shared->server_mutex, 0, "/server_mutex" );
   p_sem_open( &shared->ordered, 0, "/ordered" );
-  p_sem_open( &shared->meal_dispatch, 0, "/meal_dispatch" );
+  p_sem_open( &shared->client_present, 0, "/client_present" );
 
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {
@@ -145,9 +144,8 @@ void destroySems() {
   
   p_sem_close( &shared->receipt, "/receipt" );
   p_sem_close( &shared->cashier, "/cashier" );
-  p_sem_close( &shared->server_mutex, "/server_mutex" );
   p_sem_close( &shared->ordered, "/ordered" );
-  p_sem_close( &shared->meal_dispatch, "/meal_dispatch" );
+  p_sem_close( &shared->client_present, "/client_present" );
   
   int i;
   for ( i=0; i< MAX_NUM_CLIENTS; i++ ) {

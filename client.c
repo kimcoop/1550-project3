@@ -32,7 +32,12 @@ int client_id,
     eat_time = EAT_TIME, 
     max_people = MAX_PEOPLE, 
     prob = PROBABILITY, 
-    shared_id = SHARED_ID;
+    shared_id = SHARED_ID,
+    time_in_shop, // ms
+    time_waiting; // ms
+clock_t time_in,
+        time_out;
+
 
 void arrive() {
   println("[CLIENT %d] arrive ", client_id);
@@ -45,18 +50,18 @@ void arrive() {
   } else {
     // enter queue
 
-    println("[CLIENT %d] waiting waiting_queue_mutex ", client_id);
+    println("[CLIENT %d] posting client_present", client_id);
+    p_sem_post( &shared->client_present );
 
     p_sem_wait( &shared->waiting_queue_mutex );
-    println("[CLIENT %d] recvd waiting_queue_mutex ", client_id);
     enqueue( &shared->waiting_queue, client_id ); // waiting to place order
-    shared->orders[ client_id ] = 17;
 
     shared->num_queued++;
 
-    println("[CLIENT %d ] shared->num_queued = %d", client_id, shared->num_queued);
     p_sem_post( &shared->waiting_queue_mutex );
-    println("[CLIENT %d] post waiting_queue_mutex ", client_id);
+
+    time_in = clock();
+    println(" beginning clock for client %d ", client_id );
 
   }
 
@@ -64,21 +69,18 @@ void arrive() {
 
 void waitForCashier() {
 
-  println("[CLIENT %d] waiting for cashier to signal ", client_id);
   p_sem_wait( &shared->cashier );
-  println("[CLIENT %d] received cashier signal ", client_id);
+  println("[CLIENT %d] recvd cashier signal ", client_id);
   
 }
 
 void order() {
   // consists of a single item. client then proceeds to order queue
 
-  println("[CLIENT %d] waiting orders_mutex", client_id );
   p_sem_wait( &shared->orders_mutex );
   println("[CLIENT %d] recv orders_mutex. ordering item_id %d", client_id, item_id );
   shared->orders[ client_id ] = item_id;
   p_sem_post( &shared->orders_mutex );
-  println("[CLIENT %d] posting orders_mutex", client_id );
 
   println("[CLIENT %d] posting ordered", client_id );
   p_sem_post( &shared->ordered );
@@ -87,14 +89,12 @@ void order() {
 
 void pay() {
   
-  println("[CLIENT %d] waiting for cashier order placed ", client_id );
   p_sem_wait( &shared->cashier_order_placed );
-  println("[CLIENT %d] received cashier order placed ", client_id );
+  println("[CLIENT %d] recv cashier order placed ", client_id );
 
   println("[CLIENT %d] posting payment", client_id );
   p_sem_post( &shared->payment );
 
-  println("[CLIENT %d] waiting receipt", client_id );
   p_sem_wait( &shared->receipt );
   println("[CLIENT %d] recvd receipt", client_id );
 
@@ -124,11 +124,7 @@ void getFood() {
   p_sem_wait( &shared->meal_dispatch );
   println("[CLIENT %d ] recvd meal meal_dispatch", client_id );
 
-  // release serve attention
-  println("[ CLIENT %d  ] posting server_mutex", client_id );
   shared->total_clients_served++;
-  p_sem_post( &shared->server_mutex );
-
 
 }
 
@@ -147,6 +143,11 @@ void leave() {
 
   println("[CLIENT %d] shared->num_exited %d ", client_id, shared->num_exited);
   p_sem_post( &shared->client_exit_mutex );
+
+  println(" client ending clock ");
+  time_out = clock();
+  int seconds =  ( time_out - time_in ) / CLOCKS_PER_SEC;
+  // println( "******** TOTAL TIME(ms)  IN SHOP FOR CLIENT %d IS %d ", client_id, seconds ); // tODO
 
 }
 
@@ -191,7 +192,7 @@ int main( int argc, char *argv[] ) {
 
   srand( time(NULL) );
   if ( item_id == ITEM_ID )
-    item_id = rand() % 21;
+    item_id = (rand() % 20) + 1; // ensure not 0
   if ( client_id == CLIENT_ID ) {
     println( "Error: client ID not passed into client. " );
     exit( EXIT_FAILURE );
@@ -211,7 +212,6 @@ int main( int argc, char *argv[] ) {
   eat();
   leave();
 
-  println( "[CLIENT] shared->OPERATE %d ", shared->OPERATE );
   println( "[CLIENT] %d detaching", client_id );
   detachSharedMem( shared );
 

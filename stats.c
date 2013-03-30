@@ -95,7 +95,7 @@ void printStats() {
 		printf( "\t%d ", i );
 		printf( "\t%d ", time_in_shop );
 		printf( "\t%d ", time_waiting );
-		printf( "\t%.2f ", money_spent );
+		printf( "\t$%.2f ", money_spent );
 		printf( "\n" );
 
 	}

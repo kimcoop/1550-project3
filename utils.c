@@ -43,7 +43,6 @@ void signalHandler( int sig ) {
   if ( c == 'y' || c == 'Y' ) {
   	println( "Goodbye!" );
     println( "" );
-    shared->OPERATE = FALSE; // global var to close loops for paner, server, cashiers
   } else {
   	signal( SIGINT, signalHandler );
   }
