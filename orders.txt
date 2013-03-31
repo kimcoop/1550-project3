@@ -1,2 +1,2 @@
-Client 0 ordered item 16 (Coffee, $1.25)
-Client 1 ordered item 9 (Belgian-Cheese-Sub, $10.25)
+Client 1 ordered item 19 (Mocha, $3.25)
+Client 0 ordered item 19 (Mocha, $3.25)

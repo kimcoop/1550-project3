@@ -58,18 +58,21 @@ void arrive() {
 void waitForCashier() {
 
   p_sem_wait( &shared->cashier );
-  log(" Client %d interacting with cashier." );
+  log(" Client %d interacting with cashier.", client_id );
   
 }
 
 void order() {
   // consists of a single item. client then proceeds to order queue
 
+  if ( item_id == ITEM_ID )
+    item_id = (rand() % 20) + 1;
+
   p_sem_wait( &shared->orders_mutex );
   shared->orders[ client_id ] = item_id;
   p_sem_post( &shared->orders_mutex );
 
-  println( "Client %d ordered item %d.", client_id, item_id );
+  println( "Client %d wants to order item %d.", client_id, item_id );
   p_sem_post( &shared->ordered );
 
 }
@@ -80,6 +83,7 @@ void pay() {
   println( "Client %d is paying.", client_id );
   p_sem_post( &shared->payment );
   p_sem_wait( &shared->receipt );
+  log( "Client %d received receipt.", client_id );
 
 }
 
@@ -99,7 +103,8 @@ void getFood() {
   p_sem_post( &shared->signal_client[ client_id ] );
 
   // wait for server to hand over meal
-  p_sem_wait( &shared->meal_dispatch );
+  p_sem_wait( &shared->signal_client[ client_id ] );
+  // p_sem_wait( &shared->meal_dispatch );
   println("Client %d received meal from server.", client_id );
 
   shared->total_clients_served++;
@@ -162,8 +167,6 @@ int main( int argc, char *argv[] ) {
   }
 
   srand( time(NULL) );
-  if ( item_id == ITEM_ID )
-    item_id = (rand() % 20) + 1; // ensure not 0
   if ( client_id == CLIENT_ID ) {
     println( "Error: client ID not passed into client." );
     exit( EXIT_FAILURE );

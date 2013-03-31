@@ -3,7 +3,7 @@
 	int allocateSharedMem( key_t );
 	SharedData* attachSharedMem( int );
 	void detachSharedMem( SharedData* );
-	void removeSharedMem( int );
+	void markShmemForRemoval( int );
 
   void p_sem_wait( sem_t* );
   void p_sem_post( sem_t* );
@@ -36,6 +36,7 @@ SharedData* attachSharedMem( int shmid ) {
     return NULL;
     perror("shmat");
   } else {
+    markShmemForRemoval( shmid );
   	return data;
   }
 
@@ -49,7 +50,7 @@ void detachSharedMem( SharedData* data ) {
 
 }
 
-void removeSharedMem( int shmid ) {
+void markShmemForRemoval( int shmid ) {
 	
 	if ( shmctl( shmid, IPC_RMID, NULL ) == -1 ) {
     perror("shmtcl");
@@ -111,7 +112,7 @@ void initSems() {
   p_sem_open( &shared->menu_items_mutex, 1, "/menu_items_mutex" );
   p_sem_open( &shared->orders_mutex, 1, "/orders_mutex" );
 
-  p_sem_open( &shared->cashier, 3, "/cashier" );
+  p_sem_open( &shared->cashier, 3, "/cashier" ); // 3 cashiers
   p_sem_open( &shared->payment, 0, "/payment" );
   p_sem_open( &shared->receipt, 0, "/receipt" );
   p_sem_open( &shared->new_order, 0, "/new_order" );
@@ -124,12 +125,6 @@ void initSems() {
     char sem_name[ SMALL_BUFFER ];
     toString( sem_name, i );
     p_sem_open( &shared->signal_client[i], 0, sem_name );
-  }
-
-  for ( i=0; i< NUM_CASHIERS; i++ ) {
-    char sem_name[ SMALL_BUFFER ];
-    toString( sem_name, i );
-    p_sem_open( &shared->signal_cashier[i], 0, sem_name );
   }
 
 }
@@ -158,9 +153,4 @@ void destroySems() {
     p_sem_close( &shared->signal_client[i], sem_name );
   }
   
-  for ( i=0; i< NUM_CASHIERS; i++ ) {
-    char sem_name[ SMALL_BUFFER ];
-    toString( sem_name, i );
-    p_sem_close( &shared->signal_cashier[i], 0, sem_name );
-  }
 }

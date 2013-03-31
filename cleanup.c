@@ -34,9 +34,9 @@ void cleanupShmids( char* filename ) {
 void cleanupShmid( int shmid ) {
   println( "Cleaning up shmid %d.", shmid );
   shared = attachSharedMem( shmid );
+  markShmemForRemoval( shmid );
   destroySems();
   detachSharedMem( shared );
-  removeSharedMem( shmid );
 }
 
 int main( int argc, char *argv[] ) {

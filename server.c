@@ -61,7 +61,8 @@ void serveFood() {
 
   // hand over meal
   println( "Server handing meal to client %d.", client_id );
-  p_sem_post( &shared->meal_dispatch );
+  p_sem_post( &shared->signal_client[ client_id ] );
+  // p_sem_post( &shared->meal_dispatch );
 
 }
 
