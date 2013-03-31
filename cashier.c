@@ -56,16 +56,14 @@ void signalClient() {
 
 void serviceClient() {
 
-  println("(CASHIER %d) waiting order placed ", cashier_id, client_id );
   p_sem_wait( &shared->ordered );
-  println("(CASHIER %d) recvd order placed ", cashier_id, client_id );
+  println( "Cashier speaking with client %d. ", client_id );
 
   sleep( getRandTime( service_time ) );
-
-  println("(CASHIER %d) waiting orders_mutex", cashier_id);
   p_sem_wait( &shared->orders_mutex );
+
   int item_id = shared->orders[ client_id ];
-  println("(CASHIER %d) recvd orders mutex. client %d order: item_id %d", cashier_id, client_id, item_id );
+  println( "Cashier placing order (item_id %d) for client %d.", item_id, client_id );
   p_sem_post( &shared->orders_mutex );
 
   // log client's order in system
@@ -77,26 +75,22 @@ void serviceClient() {
   p_sem_post( &shared->db_mutex );
 
   // on successful payment, move client to waiting area (out of cashiers queue)
-  println("(CASHIER %d) waiting order_queue_mutex ", cashier_id );
   p_sem_wait( &shared->order_queue_mutex );
-  println("(CASHIER %d) recvd order_queue_mutex ", cashier_id );
   enqueue( &shared->order_queue, client_id ); // order_queue must populate before server gets called or will be nil
   p_sem_post( &shared->order_queue_mutex );
-  println("(CASHIER %d) post order_queue_mutex ", cashier_id );
 
   // signal client the order went through
-  println("(CASHIER %d) posting order placed ", cashier_id );
   p_sem_post( &shared->cashier_order_placed );
 
-  println("(CASHIER %d) waiting payment ", cashier_id );
+  log( "Cashier waiting payment from client %d.", client_id );
   p_sem_wait( &shared->payment );
-  println("(CASHIER %d) recvd payment ", cashier_id );
+  log( "Cashier received payment from client %d.", client_id );
 
-  println("(CASHIER %d) posting receipt ", cashier_id );
+  log( "Cashier posting receipt for client %d.", client_id );
   p_sem_post( &shared->receipt );
 
   // signal to server that there is a new order to be filled
-  println("(CASHIER %d) posting new_order for server", cashier_id);
+  log( "Cashier posting client %d's new_order for server.", client_id );
   p_sem_post( &shared->new_order ); 
 
   logOrder( item_id );
@@ -104,13 +98,9 @@ void serviceClient() {
 
 void logOrder( item_id ) {
   // log stats for client's order
-  println("(CASHIER %d) waiting menu_items_mutex", cashier_id );
   p_sem_wait( &shared->menu_items_mutex );
-  println("(CASHIER %d) recvd menu_items_mutexxxx", cashier_id );
-  println("(CASHIER %d) increasing freq_menu_items[ %d ] from %d to %d", cashier_id, item_id-1, shared->freq_menu_items[ item_id-1 ], shared->freq_menu_items[ item_id-1 ]+1);
   shared->freq_menu_items[ item_id-1 ]++;
   p_sem_post( &shared->menu_items_mutex );
-  println("(CASHIER %d) post menu_items_mutex", cashier_id );
 }
 
 int main( int argc, char *argv[] ) {
@@ -140,6 +130,7 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
+  int i = 0;
   
   do {
 
@@ -147,7 +138,6 @@ int main( int argc, char *argv[] ) {
       
     if ( !clientsPresent() ) {
 
-      println( "(CASHIER %d) no clients present ", cashier_id );
       // sleep(  break_time );
 
     } else {
@@ -156,13 +146,13 @@ int main( int argc, char *argv[] ) {
       serviceClient();
       
     }
+
+    i++;
     
-    println(" (CASHIER) shared->total_clients_served %d ", shared->total_clients_served );
-  } while ( shared->total_clients_served < MAX_NUM_CLIENTS );
+  } while ( i < MAX_NUM_CLIENTS );
 
-  println("( CASHIER )  detachSharedMem " );
+  log( "Cashier detaching from shared memory." );
   detachSharedMem( shared );
-
 
   return 0;
  

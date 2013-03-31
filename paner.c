@@ -70,7 +70,7 @@ void spawnClients( char* shmid_str ) {
   pid_t child_pid;
   int i = 0;
 
-  while ( i < CLIENT_BATCH_SIZE && num_clients < MAX_NUM_CLIENTS ) {
+  while ( i <= CLIENT_BATCH_SIZE && num_clients < MAX_NUM_CLIENTS ) {
 
     if ( (child_pid = fork() ) < 0 ) {
       perror("fork"); 
@@ -87,7 +87,6 @@ void spawnClients( char* shmid_str ) {
 void initSharedData() {
   shared->total_clients_served = 0;
   shared->num_queued = 0;
-  shared->num_exited = 0;
   init_queue( &shared->waiting_queue );
   init_queue( &shared->order_queue );
 
@@ -99,7 +98,6 @@ void initSharedData() {
   p_sem_post( &shared->waiting_queue_mutex );
   p_sem_post( &shared->order_queue_mutex );
   p_sem_post( &shared->db_mutex );
-  p_sem_post( &shared->client_exit_mutex );
   p_sem_post( &shared->menu_items_mutex );
   p_sem_post( &shared->orders_mutex );
 }

@@ -108,7 +108,6 @@ void initSems() {
   p_sem_open( &shared->waiting_queue_mutex, 1, "/waiting_queue_mutex" );
   p_sem_open( &shared->order_queue_mutex, 1, "/order_queue_mutex" );
   p_sem_open( &shared->db_mutex, 1, "/db_mutex" );
-  p_sem_open( &shared->client_exit_mutex, 1, "/client_exit_mutex" );
   p_sem_open( &shared->menu_items_mutex, 1, "/menu_items_mutex" );
   p_sem_open( &shared->orders_mutex, 1, "/orders_mutex" );
 
@@ -127,6 +126,12 @@ void initSems() {
     p_sem_open( &shared->signal_client[i], 0, sem_name );
   }
 
+  for ( i=0; i< NUM_CASHIERS; i++ ) {
+    char sem_name[ SMALL_BUFFER ];
+    toString( sem_name, i );
+    p_sem_open( &shared->signal_cashier[i], 0, sem_name );
+  }
+
 }
 
 void destroySems() {
@@ -137,7 +142,6 @@ void destroySems() {
   p_sem_close( &shared->orders_mutex, "/orders_mutex" );
   p_sem_close( &shared->waiting_queue_mutex, "/waiting_queue_mutex" );
   p_sem_close( &shared->order_queue_mutex, "/order_queue_mutex" );
-  p_sem_close( &shared->client_exit_mutex, "/client_exit_mutex" );
   
   p_sem_close( &shared->payment, "/payment" );
   p_sem_close( &shared->new_order, "/new_order" );
@@ -152,5 +156,11 @@ void destroySems() {
     char sem_name[ SMALL_BUFFER ];
     toString( sem_name, i );
     p_sem_close( &shared->signal_client[i], sem_name );
+  }
+  
+  for ( i=0; i< NUM_CASHIERS; i++ ) {
+    char sem_name[ SMALL_BUFFER ];
+    toString( sem_name, i );
+    p_sem_close( &shared->signal_cashier[i], 0, sem_name );
   }
 }

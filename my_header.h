@@ -26,6 +26,7 @@
 #define SLEEP_TIME 20
 #define CLIENT_BATCH_SIZE 3
 #define MAX_NUM_CLIENTS 5
+#define NUM_CASHIERS 3
 #define DB_PRINT_FORMAT "Client %d ordered item %d (%s, $%.2f)"
 
 /* 
@@ -63,7 +64,7 @@ typedef struct {
 
 typedef struct { 
  	
- 	int total_clients_served, num_queued, num_exited;
+ 	int total_clients_served, num_queued;
 
  	Queue waiting_queue, order_queue; // clients move from waiting_queue to order_queue here after placing order
 
@@ -78,9 +79,9 @@ typedef struct {
  	sem_t menu_items_mutex; // track frequencies of each item
  	sem_t db_mutex; // dumping order to file
  	sem_t server_mutex; // server is prepared to give client food
- 	sem_t client_exit_mutex;
  	
  	sem_t signal_client[MAX_NUM_CLIENTS]; // signal cashier ready and food ready for client indexed by ID
+ 	sem_t signal_cashier[NUM_CASHIERS];
 
  	sem_t client_present, cashier, ordered, payment, receipt;  // cashier interactions (placing order, paying, getting receipt)
  	sem_t new_order, meal_dispatch; // alert the server to new order

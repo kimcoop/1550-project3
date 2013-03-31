@@ -57,9 +57,8 @@ void arrive() {
 
 void waitForCashier() {
 
-  println(" [CLIENT %d] waiting on cashier ");
   p_sem_wait( &shared->cashier );
-  println(" [CLIENT %d] with cashier ");
+  log(" Client %d interacting with cashier." );
   
 }
 
@@ -70,7 +69,7 @@ void order() {
   shared->orders[ client_id ] = item_id;
   p_sem_post( &shared->orders_mutex );
 
-  println("Client %d ordered.", client_id );
+  println( "Client %d ordered item %d.", client_id, item_id );
   p_sem_post( &shared->ordered );
 
 }
@@ -78,7 +77,7 @@ void order() {
 void pay() {
   
   p_sem_wait( &shared->cashier_order_placed );
-  println("Client %d is paying.", client_id );
+  println( "Client %d is paying.", client_id );
   p_sem_post( &shared->payment );
   p_sem_wait( &shared->receipt );
 
@@ -116,15 +115,10 @@ void eat() {
 
 void leave() {
   
-  p_sem_wait( &shared->client_exit_mutex );
-  println("Client %d is exiting.", client_id );
-  shared->num_exited++;
-  
-  p_sem_post( &shared->client_exit_mutex );
+  println( "Client %d is exiting.", client_id );
   
   time_out = clock();
-  int seconds =  ( time_out - time_in ) / CLOCKS_PER_SEC;
-  // println( "******** TOTAL TIME(ms)  IN SHOP FOR CLIENT %d IS %d ", client_id, seconds ); // tODO
+  float seconds =  ( time_out - time_in ) / CLOCKS_PER_SEC; // TODO - why doesn't this work?
 
 }
 
@@ -171,7 +165,7 @@ int main( int argc, char *argv[] ) {
   if ( item_id == ITEM_ID )
     item_id = (rand() % 20) + 1; // ensure not 0
   if ( client_id == CLIENT_ID ) {
-    println( "Error: client ID not passed into client. " );
+    println( "Error: client ID not passed into client." );
     exit( EXIT_FAILURE );
   }
 
@@ -180,7 +174,7 @@ int main( int argc, char *argv[] ) {
   shared = attachSharedMem( shared_id );
   initSems();
 
-  println("[CLIENT %d] arrive ", client_id);
+  println( "Client %d arriving.", client_id );
 
   // if there are more than max_people already queued, client decides to leave with probability prob.
   if ( shared->num_queued >= max_people ) { // enter queue with 1-prob
@@ -198,9 +192,9 @@ int main( int argc, char *argv[] ) {
     
   }
 
-  println( "[CLIENT] %d detaching", client_id );
+  log( "Client %d detaching from shared memory.", client_id );
   detachSharedMem( shared );
 
-  exit( 0 );
+  return 0;
  
 }

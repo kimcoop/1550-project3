@@ -32,7 +32,7 @@ void cleanupShmids( char* filename ) {
 }
 
 void cleanupShmid( int shmid ) {
-  println( "Cleaning up shmid: %d", shmid );
+  println( "Cleaning up shmid %d.", shmid );
   shared = attachSharedMem( shmid );
   destroySems();
   detachSharedMem( shared );
@@ -50,7 +50,7 @@ int main( int argc, char *argv[] ) {
   } else {
 
     if ( (argc-1 == 1) && strEqual( argv[1], "all" ) ) {
-      println( "Cleaning up semaphores listed in file %s ", CLEANUP_FILE );
+      println( "Cleaning up semaphores listed in file %s", CLEANUP_FILE );
       cleanupShmids( CLEANUP_FILE ); // clean up from file
       emptyFile( CLEANUP_FILE ); // clear file
     } else {

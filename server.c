@@ -17,7 +17,7 @@ Due March 28, 2013
 
 int service_time = SERVICE_TIME,
     shared_id = SHARED_ID, 
-    client_id;
+    client_id, item_id;
 
 
 void printValues() {
@@ -32,7 +32,7 @@ void printValues() {
 void awaitOrder() {
 
   p_sem_wait( &shared->new_order );
-  println( "SERVER received a new order." );
+  println( "Server received a new order." );
   
 }
 
@@ -41,10 +41,11 @@ void prepareFood() {
 
   if ( !empty( &shared->order_queue ) ) {
     client_id = dequeue( &shared->order_queue );
-    println("SERVER prepared food for client_id %d", client_id );
+    item_id = shared->orders[ client_id ];
+    println( "Server preparing order (item_id %d) for client %d.", item_id, client_id );
     p_sem_post( &shared->signal_client[ client_id ] );
   } else {
-    println("ORDER QUEUE EMPTY");
+    println( "Error: ORDER QUEUE EMPTY." );
   }
 
   p_sem_post( &shared->order_queue_mutex );
@@ -55,11 +56,11 @@ void serveFood() {
   sleep( getRandTime( service_time ) );
 
   // wait for client to come to server table
-  println("{ SERVER } recvd client %d at server table", client_id );
+  log( "Server waiting for client %d at server table.", client_id );
   p_sem_wait( &shared->signal_client[ client_id ] );
 
   // hand over meal
-  println("{ SERVER } posting meal dispatched to client %d ", client_id );
+  println( "Server handing meal to client %d.", client_id );
   p_sem_post( &shared->meal_dispatch );
 
 }
@@ -86,15 +87,18 @@ int main( int argc, char *argv[] ) {
   // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
+  int i = 0;
 
   do {
+
     awaitOrder();
     prepareFood();
     serveFood();
-    println("{{ SERVER }} shared->total_clients_served %d ", shared->total_clients_served );
-  } while ( shared->total_clients_served < MAX_NUM_CLIENTS );
+    i++;
 
-  println("{ SERVER }  detachSharedMem " );
+  } while ( i < MAX_NUM_CLIENTS );
+
+  log( "Server detaching from shared memory." );
   detachSharedMem( shared );
   
   return 0;
