@@ -14,7 +14,7 @@ int getRandTime( int time ) {
   #ifdef DEBUG
     return 1;
   #else
-    return rand() % time;
+    return ( rand() % time ) + 1;
   #endif
 
 }

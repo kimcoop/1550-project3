@@ -40,37 +40,26 @@ clock_t time_in,
 
 
 void arrive() {
-  println("[CLIENT %d] arrive ", client_id);
-  // line up in FIFO queue awaiting chance to give order.
-  // if there are more than max_people already queued, client decides to leave with probability prob.
-  if ( shared->num_queued >= max_people ) {
-    println(" max_people in queue ");
-    exit( 0 );
-    // enter queue with 1-prob 
-  } else {
-    // enter queue
+  // enter queue
 
-    println("[CLIENT %d] posting client_present", client_id);
-    p_sem_post( &shared->client_present );
+  p_sem_post( &shared->client_present );
 
-    p_sem_wait( &shared->waiting_queue_mutex );
-    enqueue( &shared->waiting_queue, client_id ); // waiting to place order
+  p_sem_wait( &shared->waiting_queue_mutex );
+  enqueue( &shared->waiting_queue, client_id ); // waiting to place order
 
-    shared->num_queued++;
+  shared->num_queued++;
 
-    p_sem_post( &shared->waiting_queue_mutex );
+  p_sem_post( &shared->waiting_queue_mutex );
 
-    time_in = clock();
-    println(" beginning clock for client %d ", client_id );
-
-  }
+  time_in = clock();
 
 }
 
 void waitForCashier() {
 
+  println(" [CLIENT %d] waiting on cashier ");
   p_sem_wait( &shared->cashier );
-  println("[CLIENT %d] recvd cashier signal ", client_id);
+  println(" [CLIENT %d] with cashier ");
   
 }
 
@@ -78,11 +67,10 @@ void order() {
   // consists of a single item. client then proceeds to order queue
 
   p_sem_wait( &shared->orders_mutex );
-  println("[CLIENT %d] recv orders_mutex. ordering item_id %d", client_id, item_id );
   shared->orders[ client_id ] = item_id;
   p_sem_post( &shared->orders_mutex );
 
-  println("[CLIENT %d] posting ordered", client_id );
+  println("Client %d ordered.", client_id );
   p_sem_post( &shared->ordered );
 
 }
@@ -90,13 +78,9 @@ void order() {
 void pay() {
   
   p_sem_wait( &shared->cashier_order_placed );
-  println("[CLIENT %d] recv cashier order placed ", client_id );
-
-  println("[CLIENT %d] posting payment", client_id );
+  println("Client %d is paying.", client_id );
   p_sem_post( &shared->payment );
-
   p_sem_wait( &shared->receipt );
-  println("[CLIENT %d] recvd receipt", client_id );
 
 }
 
@@ -105,10 +89,7 @@ void waitForFood() {
   // wait pseudo-random amount of time between rand(min) and rand(max) for item_id
   
   int wait_time = getWaitTime( item_id );
-  println("[CLIENT %d] waiting for food ", client_id );
-  
   sleep( getRandTime( wait_time ) );  
-
   p_sem_wait( &shared->signal_client[ client_id ] );
 
 }
@@ -116,13 +97,11 @@ void waitForFood() {
 void getFood() {
 
   // signal to server that client is at server table
-  println("[CLIENT %d ] posting signal_client[] (at server table)", client_id );
   p_sem_post( &shared->signal_client[ client_id ] );
 
   // wait for server to hand over meal
-  println("[CLIENT %d ] waiting meal meal_dispatch", client_id );
   p_sem_wait( &shared->meal_dispatch );
-  println("[CLIENT %d ] recvd meal meal_dispatch", client_id );
+  println("Client %d received meal from server.", client_id );
 
   shared->total_clients_served++;
 
@@ -130,7 +109,7 @@ void getFood() {
 
 void eat() {
   //
-  println("[CLIENT %d] eating", client_id );
+  println("Client %d is eating.", client_id );
   sleep( getRandTime( eat_time ) );
 
 }
@@ -138,13 +117,11 @@ void eat() {
 void leave() {
   
   p_sem_wait( &shared->client_exit_mutex );
-  println("[CLIENT %d] leaving ", client_id );
+  println("Client %d is exiting.", client_id );
   shared->num_exited++;
-
-  println("[CLIENT %d] shared->num_exited %d ", client_id, shared->num_exited);
+  
   p_sem_post( &shared->client_exit_mutex );
-
-  println(" client ending clock ");
+  
   time_out = clock();
   int seconds =  ( time_out - time_in ) / CLOCKS_PER_SEC;
   // println( "******** TOTAL TIME(ms)  IN SHOP FOR CLIENT %d IS %d ", client_id, seconds ); // tODO
@@ -203,14 +180,23 @@ int main( int argc, char *argv[] ) {
   shared = attachSharedMem( shared_id );
   initSems();
 
-  arrive();
-  waitForCashier();
-  order();
-  pay();
-  waitForFood();
-  getFood();
-  eat();
-  leave();
+  println("[CLIENT %d] arrive ", client_id);
+
+  // if there are more than max_people already queued, client decides to leave with probability prob.
+  if ( shared->num_queued >= max_people ) { // enter queue with 1-prob
+    println(" max_people in queue ");
+  } else {
+
+    arrive();
+    waitForCashier();
+    order();
+    pay();
+    waitForFood();
+    getFood();
+    eat();
+    leave();
+    
+  }
 
   println( "[CLIENT] %d detaching", client_id );
   detachSharedMem( shared );

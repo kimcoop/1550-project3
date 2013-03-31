@@ -24,11 +24,9 @@
 #define INITIAL_QUEUE_SIZE 10
 #define QUEUE_SIZE 1000
 #define SLEEP_TIME 20
-#define CLIENT_BATCH_SIZE 1
-#define MAX_NUM_CLIENTS 3
+#define CLIENT_BATCH_SIZE 3
+#define MAX_NUM_CLIENTS 5
 #define DB_PRINT_FORMAT "Client %d ordered item %d (%s, $%.2f)"
-
-
 
 /* 
  DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT
@@ -97,10 +95,9 @@ SharedData* shared;
 */
 void cleanup();
 void client( char*, int );
-void cashier( char*, int );
+void cashier( char* );
 void server( char* );
 void spawnClients( char* );
-void spawnCashiers( char* );
 void initSharedData();
 void initSharedMem();
 
@@ -170,3 +167,4 @@ int 		isValidMenuOption( int );
 #include "stats.c"
 #include "output_help.c"
 #include "menu.c"
+

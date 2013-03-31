@@ -9,9 +9,8 @@ Due March 28, 2013
 /*
 void cleanup();
 void client( char*, int );
-void cashier( char*, int );
+void cashier( char* );
 void server( char* );
-void spawnCashiers( char* );
 void spawnClients( char* );
 void initSharedData();
 void initSharedMem();
@@ -40,13 +39,16 @@ void client( char* shmid_str, int client_id ) {
   }
 }
 
-void cashier( char* shmid_str, int cashier_id ) {
-  char cashier_id_str[ SMALL_BUFFER ];
-  toString( cashier_id_str, cashier_id );
-
-  if ( execl( "./cashier",  "cashier", "-h", shmid_str, "-u", cashier_id_str, (char*)0 ) == -1 ) {
-    perror( "execl" );
+void cashier( char* shmid_str ) {
+  pid_t child_pid;
+   if ( ( child_pid = fork() ) < 0 ) {
+    perror("fork");
     exit( EXIT_FAILURE );
+  } else if ( child_pid == 0 ) {
+    if ( execl( "./cashier",  "cashier", "-h", shmid_str, (char*)0 ) == -1 ) {
+      perror( "execl" );
+      exit( EXIT_FAILURE );
+    }
   }
 }
 
@@ -63,23 +65,6 @@ void server( char* shmid_str) {
   }
 }
 
-void spawnCashiers( char* shmid_str ) {
-  
-  pid_t child_pid;
-  int i = 0;
-
-  while ( i < num_cashiers ) {
-
-    if ( (child_pid = fork() ) < 0 ) {
-      perror("fork"); 
-      exit( EXIT_FAILURE );
-    } else if ( child_pid == 0 ) {
-      cashier( shmid_str, i );
-    }
-
-    i++;
-  }
-}
 void spawnClients( char* shmid_str ) {
   
   pid_t child_pid;
@@ -167,7 +152,7 @@ int main( int argc, char *argv[] ) {
   writeToFile( CLEANUP_FILE, shmid_str ); // track them in a file that we can parse with cleanup
 
   server( shmid_str );
-  spawnCashiers( shmid_str );
+  cashier( shmid_str );
 
   num_clients = 0; // helps assign client_id for each client spawned
 
