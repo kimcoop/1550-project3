@@ -54,7 +54,7 @@ void topItems() {
 
 	for ( i=0; i < TOP_N; i++ ) {
 		printf( "\n" );
-		printf( "%d", top_items[ i ] );
+		printf( "Item ID: %d", top_items[ i ] );
 		printf( " (%s)", getDescription( top_items[i] ) );
 	}
 	
@@ -111,6 +111,7 @@ void printStats() {
 	printf( "  Item ID  | Times Ordered |  Revenue  |  Description\n" );
 	printf( "-----------------------------------------------------------------------------------\n" );
 	printf( "\n" );
+
 	int i, freq;
 	float revenue;
 	for ( i=1; i <= NUM_MENU_ITEMS; i++ ) {
@@ -122,6 +123,7 @@ void printStats() {
 		printf( "%s \t  ", getDescription( i ) ); // description
 		printf( "\n" );
 	}
+
 	printf( "\n" );
 	printf( "-------------------------\n" );
 	printf( "Total revenue: $%.2f\n", totalRevenue() );
@@ -130,23 +132,27 @@ void printStats() {
 	printf( "-------------------------\n" );
 
 	printf( "\n" );
-	printf( "  Client ID  | Shop Time |  Wait Time  |  $ Spent\n" );
-	printf( "-----------------------------------------------------------------------------------\n" );
-	printf( "\n" );
-	for ( i = 0; i < shared->total_clients_served; i++ ) {
-		// client_id, time spent in shop, time in waiting, money spent
-
-		int time_in_shop = shared->time_in_shop[ i ];
-		int time_waiting = shared->wait_times[ i ];
-		int item_id = shared->orders[ i ];
-		float money_spent = getPrice( item_id );
-
-		printf( "\t%d ", i );
-		printf( "\t%d ", time_in_shop );
-		printf( "\t%d ", time_waiting );
-		printf( "\t$%.2f ", money_spent );
+	if ( shared->total_clients_served > 0 ) {
+		printf( "  Client ID  | Shop Time |  Wait Time  |  $ Spent\n" );
+		printf( "-----------------------------------------------------------------------------------\n" );
 		printf( "\n" );
+		for ( i = 0; i < shared->total_clients_served; i++ ) {
+			// client_id, time spent in shop, time in waiting, money spent
 
+			int time_in_shop = shared->time_in_shop[ i ];
+			int time_waiting = shared->wait_times[ i ];
+			int item_id = shared->orders[ i ];
+			float money_spent = getPrice( item_id );
+
+			printf( "\t%d ", i );
+			printf( "\t%d ", time_in_shop );
+			printf( "\t%d ", time_waiting );
+			printf( "\t$%.2f ", money_spent );
+			printf( "\n" );
+
+		}
+	} else {
+		printf( "No client statistics (0 served).\n" );
 	}
 
 	printf( "\n" );

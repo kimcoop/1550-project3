@@ -7,7 +7,6 @@ Due March 28, 2013
 */
 
 
-void printValues();
 void signalClient();
 void serviceClient();
 void logOrder();
@@ -20,14 +19,6 @@ int service_time = SERVICE_TIME,
     shared_id = SHARED_ID,
     client_id;
 
-void printValues() {
-  println( "----" );
-  println( "max time cashier takes to service client: %i", service_time );
-  println( "max time cashier spends in break: %i", break_time );
-  println( "shared memory segment ID: %i", shared_id );
-  println( "----" );
-  println( "" );
-}
 
 int clientsPresent() {
 
@@ -117,8 +108,6 @@ int main( int argc, char *argv[] ) {
     }
   }
 
-  
-  // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
   int i = 0;

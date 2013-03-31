@@ -20,6 +20,14 @@ void initSharedMem();
 
 key_t key;
 int shmid, num_clients, num_cashiers;
+// client
+int client_id, 
+    item_id = ITEM_ID, 
+    eat_time = EAT_TIME, 
+    max_people = MAX_PEOPLE, 
+    prob = PROBABILITY;
+
+int service_time = SERVICE_TIME, break_time = BREAK_TIME; // server & cashier
 
 
 void cleanup() {
@@ -30,10 +38,26 @@ void cleanup() {
 }
 
 void client( char* shmid_str, int client_id ) {
-  char client_id_str[ SMALL_BUFFER ];
+  char client_id_str[ SMALL_BUFFER ], item_id_str[ SMALL_BUFFER ], 
+  eat_time_str[ SMALL_BUFFER ], max_people_str[ SMALL_BUFFER ], prob_str[ SMALL_BUFFER ];
   toString( client_id_str, client_id );
+  toString( item_id_str, item_id );
+  toString( eat_time_str, eat_time );
+  toString( max_people_str, max_people );
+  toString( prob_str, prob );
 
-  if ( execl( "./client",  "client", "-h", shmid_str, "-x", client_id_str, (char*)0 ) == -1 ) {
+  char *const argv[] = {
+    "client",
+    "-h", shmid_str,
+    "-x", client_id_str,
+    "-i", item_id_str,
+    "-e", eat_time_str,
+    "-m", max_people_str,
+    "-p", prob_str,
+    (char*) 0
+  };
+
+  if ( execv( "./client", argv ) == -1 ) {
     perror( "execl" );
     exit( EXIT_FAILURE );
   }
@@ -104,14 +128,13 @@ void initSharedData() {
 
 void initSharedMem() {
   key = ftok( KEY, KEY_MODE ); 
-  println(" KEY******: 0x%x", key );
   shmid = allocateSharedMem( key );
   shared = attachSharedMem( shmid );
 }
 
 int main( int argc, char *argv[] ) {
 
-  num_cashiers = NUM_CASHIERS; // TODO - ensure we pass other args into exec calls
+  num_cashiers = NUM_CASHIERS;
   
   if ( argc == 1 ) {
     printClientOptions();
@@ -132,6 +155,19 @@ int main( int argc, char *argv[] ) {
       strcpy( flag, argv[ i ] );
       if ( strEqual(flag, "-k") )
         num_cashiers = atoi( argv[ ++i ] );
+      else if ( strEqual(flag, "-i") ) 
+        item_id = atoi( argv[++i] );
+      else if ( strEqual(flag, "-e") ) 
+        eat_time = atoi( argv[++i] );  
+      else if ( strEqual(flag, "-m") ) 
+        max_people = atoi( argv[++i] );
+      else if ( strEqual(flag, "-p") ) 
+        prob = atoi( argv[++i] );
+      else if ( strEqual(flag, "-s") ) 
+        service_time = atoi( argv[ ++i ] );
+      else if ( strEqual(flag, "-b") ) 
+        break_time = atoi( argv[ ++i ] );
+     
     }
   }
 
@@ -144,6 +180,8 @@ int main( int argc, char *argv[] ) {
   initSharedMem();
   initSems();
   initSharedData();
+
+  printValues( item_id, eat_time, max_people, prob, service_time, break_time );
 
   char shmid_str[ SMALL_BUFFER ];
   toString( shmid_str, shmid );
@@ -167,8 +205,6 @@ int main( int argc, char *argv[] ) {
   if ( getpid() == parent_id ) { // clean up after all child processes have exited
 
     printStats();
-    println( "Waiting for child processes to exit." );
-    sleep( 5 );
     detachSharedMem( shared ); // note that printStats() requires access to shared, so this must come after
     cleanup(); // scrapes shmids dumped in file and cleans them all
 

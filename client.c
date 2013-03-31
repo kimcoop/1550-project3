@@ -20,9 +20,6 @@ void getFood();
 void eat();
 void leave();
 
-void printValues();
-
-
 */
 
 #include "my_header.h"
@@ -126,18 +123,6 @@ void leave() {
   float seconds =  ( time_out - time_in ) / CLOCKS_PER_SEC; // TODO - why doesn't this work?
 
 }
-
-
-void printValues() {
-  println( "-------");
-  println( "menu ID of meal: %d", item_id );
-  println( "max time client spends eating her food: %d", eat_time );
-  println( "max people in queue: %d", max_people );
-  println( "probably with which client decides to leave: %d", prob );
-  println( "shared memory segment ID: %d", shared_id );
-  println( "-------");
-}
-
 
 int main( int argc, char *argv[] ) {
 

@@ -8,7 +8,6 @@ Due March 28, 2013
 
 /*
   void awaitOrder();
-  void printValues();
   void prepareFood();
   void serveFood();
 */
@@ -19,15 +18,6 @@ int service_time = SERVICE_TIME,
     shared_id = SHARED_ID, 
     client_id, item_id;
 
-
-void printValues() {
-
-  println( "-------");
-  println( "max time server takes to service client: %i", service_time );
-  println( "shared memory segment ID: %i", shared_id );
-  println( "-------");
-
-}
 
 void awaitOrder() {
 
@@ -85,7 +75,6 @@ int main( int argc, char *argv[] ) {
     }
   }
 
-  // printValues();
   shared = attachSharedMem( shared_id );
   initSems();
   int i = 0;

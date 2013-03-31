@@ -40,7 +40,7 @@ void cleanupShmid( int shmid ) {
 }
 
 int main( int argc, char *argv[] ) {
-  
+
   int shmid, i;
   if ( argc-1 == 0 ) {
     println( "Cleanup usage: ");

@@ -153,6 +153,7 @@ float itemRevenue( int );
 void printClientOptions();
 void printCashierOptions();
 void printServerOptions();
+void printValues( int, int, int, int, int, int);
 
 /*
  MENU.C
