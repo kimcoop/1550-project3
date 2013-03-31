@@ -1,2 +1,0 @@
-Client 1 ordered item 19 (Mocha, $3.25)
-Client 0 ordered item 19 (Mocha, $3.25)

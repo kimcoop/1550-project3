@@ -10,6 +10,9 @@ Due March 28, 2013
 
 /*
 
+int getMostFreqItem();
+void topItems();
+int freq( int );
 int clientWaitTime( int );
 float avgWaitTime();
 void printStats();
@@ -17,6 +20,52 @@ float avgWaitTime();
 float itemRevenue( int );
 
 */
+
+int getMostFreqItem() {
+
+	int i, f, max_freq = -1, most_freq_item_id = -1;
+	for ( i=0; i < NUM_MENU_ITEMS; i++ ) {
+		f = freq( i );
+		if ( f > max_freq ) {
+			max_freq = f;
+			most_freq_item_id = i+1;
+		}
+	}
+
+	return most_freq_item_id;
+
+}
+
+void topItems() {
+
+	int i = 0, TOP_N = 5, item_id;
+	int top_items[ TOP_N ];
+
+	while ( i < TOP_N ) {
+		// get the most freq item, nullify its value, repeat
+		item_id = getMostFreqItem(); // returns item_id
+		top_items[ i ] = item_id;
+		shared->freq_menu_items[ item_id-1 ] = -1; // remove as candidate for max freq
+		i++;
+	}
+
+	printf( "\n" );
+	printf( "Top %d Most Popular Items (Greatest -> Least)", TOP_N );
+
+	for ( i=0; i < TOP_N; i++ ) {
+		printf( "\n" );
+		printf( "%d", top_items[ i ] );
+		printf( " (%s)", getDescription( top_items[i] ) );
+	}
+	
+	printf( "\n" );
+	printf( "\n" );
+
+}
+
+int freq( int item_id ) {
+	return shared->freq_menu_items[ item_id ];
+}
 
 
 int clientWaitTime( int client_id ) {
@@ -42,8 +91,8 @@ float avgWaitTime() {
 }
 
 float itemRevenue( int item_id ) {
-	int freq = shared->freq_menu_items[ item_id-1 ];
-	return freq * getPrice( item_id );
+	int f = freq( item_id-1 );
+	return f * getPrice( item_id );
 }
 
 float totalRevenue() {
@@ -99,5 +148,9 @@ void printStats() {
 		printf( "\n" );
 
 	}
+
+	printf( "\n" );
+	printf( "\n" );
+	topItems();
 
 }

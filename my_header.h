@@ -126,36 +126,43 @@ void emptyFile( char* );
 /* 
  SEMS.C 
 */
-int 		allocateSharedMem( key_t );
-SharedData*	  attachSharedMem( int );
-void 		detachSharedMem( SharedData* );
-void 		markShmemForRemoval( int );
+int allocateSharedMem( key_t );
+SharedData*	attachSharedMem( int );
+void detachSharedMem( SharedData* );
+void markShmemForRemoval( int );
 void p_sem_wait( sem_t* );
 void p_sem_post( sem_t* );
-void 		initSems();
-void 		destroySems();
+void initSems();
+void destroySems();
 
 /* 
  STATS.C
 */
- void printStats();
+int getMostFreqItem();
+void topItems();
+int freq( int );
+int clientWaitTime( int );
+float avgWaitTime();
+void printStats();
+float avgWaitTime();
+float itemRevenue( int );
 
 /* 
  OUTPUT_HELP.C 
 */
-void	 printClientOptions();
-void	 printCashierOptions();
-void	 printServerOptions();
+void printClientOptions();
+void printCashierOptions();
+void printServerOptions();
 
 /*
  MENU.C
 */
-int 		getWaitTime( int );
-char* 	getDescription( int );
-float 	getPrice( int );
-int 		getMinTime( int );
-int 		getMaxTime( int );
-int 		isValidMenuOption( int );
+int getWaitTime( int );
+char* getDescription( int );
+float getPrice( int );
+int getMinTime( int );
+int getMaxTime( int );
+int isValidMenuOption( int );
 
 /*
  HELPERS
